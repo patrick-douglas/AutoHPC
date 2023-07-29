@@ -19,10 +19,13 @@ echo "${g}************************************************"
 echo "  ${w}Installing required libraries and R packages${g}"
 echo "************************************************${w}"
 echo ''
+echo "NOTE: Use the parameter -o to keep installation logs"
 echo -ne '###                                      (8.33%)\r'
-sudo apt-fast install -y build-essential fort77 xorg-dev liblzma-dev libblas-dev gfortran gcc-multilib gobjc++ aptitude libcurl4-openssl-dev libbz2-dev libproj-dev > .out.log 2> .err.log
-sudo apt-fast install -y libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libproj-dev >> .out.log 2>> .err.log
+sudo apt-fast update > .out.log 2> .err.log
+sudo apt-fast install -y build-essential fort77 xorg-dev liblzma-dev libblas-dev gfortran gcc-multilib gobjc++ aptitude libcurl4-openssl-dev libbz2-dev libproj-dev >> .out.log 2>> .err.log
+sudo apt-fast install -y libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libproj-dev libssl-dev libxml2-dev libcairo2-dev libtiff-dev libudunits2-dev >> .out.log 2>> .err.log
 sudo aptitude install -y libreadline-dev >> .out.log 2>> .err.log
+
 #R update
 echo -ne '#####                                   (11.19%)\r'
 R -e 'install.packages("BiocManager", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
@@ -101,6 +104,7 @@ echo    "************************************************"
 if [ ! -z "$output_log" ]; then
 rm -rf .out.log .err.log
 else 
-echo ''
+mv .out.log R-packages_out.log.txt
+mv .err.log R-packages_err.log.txt
 fi
 
