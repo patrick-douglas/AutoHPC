@@ -1,0 +1,31 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+
+echo "${y}*******************************"
+echo 'Installing Java...'
+echo "*******************************${w}"
+echo -ne '#####                     (33%)\r'
+
+USAGE="USAGE: $0"
+
+add-apt-repository ppa:linuxuprising/java -y >/dev/null
+echo -ne '#############             (66%)\r'
+echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections >/dev/null
+apt-get update >/dev/null 
+apt-get install -y oracle-java17-installer >/dev/null
+rm -rf /etc/apt/sources.list.d/linuxuprising-* >/dev/null
+apt-get update >/dev/null
+
+echo -ne '#######################   (100%)\r'
+echo -ne '\n'
+
+echo "${g}"
+echo    "---------------------------------------------------"
+echo	"          Currently installed versions:"
+echo    "---------------------------------------------------${w}"
+java -version
+echo    "${g}---------------------------------------------"

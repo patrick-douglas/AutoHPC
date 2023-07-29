@@ -1,0 +1,192 @@
+#!/bin/bash
+mkdir -p /home/.tmp/
+#color defaults 
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+o=$(tput setaf 3) 
+p=$(tput setaf 5)
+
+USAGE="USAGE: $0 -c <clustername>"
+
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts c: option
+do
+case "${option}"
+in
+c) clustername=$OPTARG;;
+esac
+done
+
+if [ "$clustername" = "" ]; then
+"${g}Error, missing arguments:${y} -c | Cluster domain name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+echo "${g}"  # set fg g
+echo	"=================================${w}"
+echo	"Testing your network connection${g}"
+echo	"================================="
+#function of slash spin
+spinner()
+{
+    local pid=$1
+    local delay=0.75
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+( wget -q --tries=10 --timeout=20 --spider http://google.com ) &
+echo -n "Please wait... "
+spinner $!
+echo "DONE!${w}"
+
+if [[ $? -eq 0 ]]; then
+echo ""
+echo "Connection OK"
+echo "${g}"
+else
+echo "
+Ouch!!!
+--------------------------------------------------------------------------------------------------------
+You are OFFLINE, your computer need to be connected to the Internet to install updates and some packages
+If you continue without INTERNET connection the installation will no work
+--------------------------------------------------------------------------------------------------------
+"
+function pause(){
+   read -p "$*"
+}
+echo -e "setf 4" | tput -S
+pause 'Connect to the Internet and Press [Enter] key to continue or [Ctrl+C] to exit.'
+fi
+
+echo	"${g}"
+echo	"---------------------------------------------------------------------------------"
+echo    "---------------------- Phase 1: Identify the Cluster ----------------------------"
+echo    "---------------------------------------------------------------------------------"
+	echo ""
+
+echo ""
+
+echo ""
+echo "==============================================================="
+echo "Cluster name or domain name (Example lbn):${w}"
+echo "$clustername ${g}"
+echo "===============================================================${w}"
+apt-get update
+
+echo "${g}"
+echo "==============================================================="
+echo "================= Configuring Nsswitch ========================"
+echo "==============================================================="
+echo "${w}"
+
+echo '# /etc/nsswitch.conf' > /etc/nsswitch.conf
+echo '#' >> /etc/nsswitch.conf
+echo '# Example configuration of GNU Name Service Switch functionality.'  >> /etc/nsswitch.conf
+echo '# If you have the glibc-doc-reference and info packages installed, try:' >> /etc/nsswitch.conf
+echo '# info libc Name Service Switch for information about this file.' >> /etc/nsswitch.conf
+echo ' ' >> /etc/nsswitch.conf
+echo 'passwd:         compat ldap' >> /etc/nsswitch.conf
+echo 'group:          compat ldap' >> /etc/nsswitch.conf
+echo 'shadow:         compat ldap' >> /etc/nsswitch.conf
+echo 'gshadow:        files' >> /etc/nsswitch.conf
+echo ' ' >> /etc/nsswitch.conf
+echo 'hosts:          files dns' >> /etc/nsswitch.conf
+echo 'networks:       files' >> /etc/nsswitch.conf
+echo ' ' >> /etc/nsswitch.conf
+echo 'protocols:      db files' >> /etc/nsswitch.conf
+echo 'services:       db files' >> /etc/nsswitch.conf
+echo 'ethers:         db files' >> /etc/nsswitch.conf
+echo 'rpc:            db files' >> /etc/nsswitch.conf
+echo ' ' >> /etc/nsswitch.conf
+echo 'netgroup:       nis' >> /etc/nsswitch.conf
+
+	echo "#">/etc/pam.d/common-session
+	echo "# /etc/pam.d/common-session - session-related modules common to all services" >> /etc/pam.d/common-session
+	echo "# This file is included from other service-specific PAM config files," >> /etc/pam.d/common-session
+	echo "# and should contain a list of modules that define tasks to be performed" >> /etc/pam.d/common-session
+	echo "# at the start and end of sessions of *any* kind (both interactive and" >> /etc/pam.d/common-session
+	echo "# non-interactive)." >> /etc/pam.d/common-session
+	echo "#" >> /etc/pam.d/common-session
+	echo "# As of pam 1.0.1-6, this file is managed by pam-auth-update by default." >> /etc/pam.d/common-session
+	echo "# To take advantage of this, it is recommended that you configure any" >> /etc/pam.d/common-session
+	echo "# local modules either before or after the default block, and use" >> /etc/pam.d/common-session
+	echo "# pam-auth-update to manage selection of other modules.  See" >> /etc/pam.d/common-session
+	echo "# pam-auth-update(8) for details." >> /etc/pam.d/common-session
+	echo "" >> /etc/pam.d/common-session
+
+	echo "# here are the per-package modules (the "Primary" block)" >> /etc/pam.d/common-session
+	echo "session [default=1]                     pam_permit.so" >> /etc/pam.d/common-session
+	echo "# here's the fallback if no module succeeds" >> /etc/pam.d/common-session
+	echo "session requisite                       pam_deny.so" >> /etc/pam.d/common-session
+	echo "# prime the stack with a positive return value if there isn't one already;" >> /etc/pam.d/common-session
+	echo "# this avoids us returning an error just because nothing sets a success code" >> /etc/pam.d/common-session
+	echo "# since the modules above will each just jump around" >> /etc/pam.d/common-session
+	echo "session required                        pam_permit.so" >> /etc/pam.d/common-session
+	echo "# The pam_umask module will set the umask according to the system default in" >> /etc/pam.d/common-session
+	echo "# /etc/login.defs and user settings, solving the problem of different" >> /etc/pam.d/common-session
+	echo "# umask settings with different shells, display managers, remote sessions etc." >> /etc/pam.d/common-session
+	echo "# See \"man pam_umask\"." >> /etc/pam.d/common-session
+	echo "session optional                        pam_umask.so" >> /etc/pam.d/common-session
+	echo "# and here are more per-package modules (the "Additional" block)" >> /etc/pam.d/common-session
+	echo "session required        pam_unix.so" >> /etc/pam.d/common-session
+	echo "session optional                        pam_ldap.so" >> /etc/pam.d/common-session
+	echo "session optional        pam_systemd.so" >> /etc/pam.d/common-session
+	echo "session optional        pam_ecryptfs.so unwrap" >> /etc/pam.d/common-session
+	echo "session optional                        pam_ck_connector.so nox11" >> /etc/pam.d/common-session
+	echo "session optional        pam_mkhomedir.so        skel=/etc/skel umask=0022" >> /etc/pam.d/common-session
+	echo "# end of pam-auth-update config" >> /etc/pam.d/common-session
+	echo "" >> /etc/pam.d/common-session
+	echo "" >> /etc/pam.d/common-session
+
+service nscd restart
+
+#Editind sudoers
+	echo "#">/etc/sudoers
+	echo "# This file MUST be edited with the 'visudo' command as root." >> /etc/sudoers
+	echo "#" >> /etc/sudoers
+	echo "# Please consider adding local content in /etc/sudoers.d/ instead of" >> /etc/sudoers
+	echo "# directly modifying this file." >> /etc/sudoers
+	echo "#" >> /etc/sudoers
+	echo "# See the man page for details on how to write a sudoers file." >> /etc/sudoers
+	echo "#" >> /etc/sudoers
+	echo "Defaults        env_reset" >> /etc/sudoers
+	echo "Defaults        mail_badpass" >> /etc/sudoers
+	echo "Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"" >> /etc/sudoers
+	echo "# Host alias specification" >> /etc/sudoers
+	echo "" >> /etc/sudoers
+	echo "# User alias specification" >> /etc/sudoers
+	echo "" >> /etc/sudoers
+	echo "# Cmnd alias specification" >> /etc/sudoers
+	echo "" >> /etc/sudoers
+	echo "# User privilege specification" >> /etc/sudoers
+	echo "root    ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	echo "" >> /etc/sudoers
+	echo "# Members of the admin group may gain root privileges" >> /etc/sudoers
+	echo "%admin ALL=(ALL) ALL" >> /etc/sudoers
+	echo "%admins ALL=(ALL) ALL" >> /etc/sudoers
+	echo "# Allow members of group sudo to execute any command" >> /etc/sudoers
+	echo "%sudo   ALL=(ALL:ALL) ALL" >> /etc/sudoers
+	echo "" >> /etc/sudoers
+	echo "# See sudoers(5) for more information on "#include" directives:" >> /etc/sudoers
+	echo "" >> /etc/sudoers
+	echo "#includedir /etc/sudoers.d" >> /etc/sudoers
+echo "master.$clustername.com"> /etc/hostname
+
+

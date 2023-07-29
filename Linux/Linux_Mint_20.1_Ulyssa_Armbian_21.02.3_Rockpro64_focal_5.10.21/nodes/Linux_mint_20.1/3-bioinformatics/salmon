@@ -1,0 +1,64 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+p=$(tput setaf 5) 
+USAGE="USAGE: $0 -n <nodename> -u <username>"
+
+if [ "$#" -lt "2" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+    var2=$4;
+fi
+
+while getopts n:u: option
+do
+case "${option}"
+in
+n) node_name=${OPTARG};;
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$node_name" = "" ]; then
+"${g}Error, missing arguments:${y} -n | Node hostname | <string>
+${w}$USAGE"
+exit 1
+fi
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+#Set -j option during make process
+	threads=`ssh $node_name nproc`
+#create temp dir
+ssh $node_name 'rm -rf /node_temp/'
+ssh $node_name 'mkdir -p /node_temp/'
+ssh $node_name "chown -R $user_name:$user_name /node_temp/"
+
+#salmon
+echo "${y}*******************"
+echo 'salmon'
+echo "*******************${w}"
+salmon_tar=/node_temp/salmon-1.4.0_linux_x86_64.tar.gz
+salmon_URL=https://github.com/COMBINE-lab/salmon/releases/download/v1.4.0/salmon-1.4.0_linux_x86_64.tar.gz
+ssh $node_name "su -c 'cd /node_temp/ && wget $salmon_URL' $user_name"
+ssh $node_name "tar -zxf $salmon_tar --directory /usr/local/bin"
+ssh $node_name "rm -rf $salmon_tar"
+ssh $node_name "ln -sf /usr/local/bin/salmon-latest_linux_x86_64/bin/salmon /usr/local/bin/salmon"
+
+ssh $node_name 'rm -rf /node_temp/'
+echo "${g}"
+echo    "-----------------------------"
+echo	"Hostname=${w}$node_name                      " 
+echo	"${g}Currently installed versions:"
+echo    "-----------------------------${y}"
+ssh $node_name 'salmon -v'
+echo    "${g}-------------------------${w}"

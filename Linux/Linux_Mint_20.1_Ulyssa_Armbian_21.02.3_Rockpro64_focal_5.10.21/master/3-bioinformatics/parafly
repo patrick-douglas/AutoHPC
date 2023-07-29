@@ -1,0 +1,52 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+
+#Parafly 
+echo "${y}*******************"
+echo 'Parafly'
+echo "*******************${w}"
+parafly_path=/home/$user_name/parafly-r2013-01-21
+parafly_tar=/home/$user_name/parafly-r2013-01-21.tgz
+parafly_url=https://ufpr.dl.sourceforge.net/project/parafly/parafly-r2013-01-21.tgz
+su -c "cd /home/$user_name/ && wget $parafly_url" $user_name
+su -c "cd /home/$user_name/ && tar -zxf $parafly_tar" $user_name
+su -c "cd $parafly_path && ./configure" $user_name
+su -c "cd $parafly_path && make -j $threads" $user_name
+cd $parafly_path && sudo make install -j $threads
+rm -rf $parafly_path $parafly_tar
+pfly_v=`echo "$parafly_tar" | sed 's/.[^.]*//2g'` 
+pfly_ver=`basename $pfly_v`
+cd
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+echo    "$pfly_ver"
+echo    "${g}----------------------------"

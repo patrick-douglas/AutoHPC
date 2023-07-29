@@ -1,0 +1,35 @@
+#!/bin/bash
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+p=$(tput setaf 5) 
+USAGE="USAGE: $0"
+R_ver=`R --version | grep version | grep R | awk '{print $3}'`
+echo "${g}*************************************************"
+echo "${w}R $R_ver packages versions${g}"
+echo "*************************************************${g}"
+echo -n "${g}RCurl: 	                       	        ${w}" ; R --no-restore -e 'packageVersion("RCurl")' | grep packageVersion -A 1 | grep '[1]' | awk {'print $2'} | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}goseq:                             	${w}" ; R --no-restore -e 'packageVersion("goseq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}annotate:                          	${w}" ; R --no-restore -e 'packageVersion("annotate")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}GenomicRanges:                        	${w}" ; R --no-restore -e 'packageVersion("GenomicRanges")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}SummarizedExperiment:                 	${w}" ; R --no-restore -e 'packageVersion("SummarizedExperiment")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}genefilter:	                       	${w}" ; R --no-restore -e 'packageVersion("genefilter")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}DESeq2:	                  	        ${w}" ; R --no-restore -e 'packageVersion("DESeq2")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}Biobase:                          	${w}" ; R --no-restore -e 'packageVersion("Biobase")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}gplots:                           	${w}" ; R --no-restore -e 'packageVersion("gplots")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}qvalue:                         	${w}" ; R --no-restore -e 'packageVersion("ape")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}qvalue:        		                ${w}" ; R --no-restore -e 'packageVersion("qvalue")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}fastcluster:		                ${w}" ; R --no-restore -e 'packageVersion("fastcluster")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}Biobase:	                        ${w}" ; R --no-restore -e 'packageVersion("Biobase")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}argparse:                               ${w}" ; R --no-restore -e 'packageVersion("argparse")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}seqLogo:		                ${w}" ; R --no-restore -e 'packageVersion("seqLogo")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}EBSeq:     		                ${w}" ; R --no-restore -e 'packageVersion("EBSeq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}ggplot2:		                ${w}" ; R --no-restore -e 'packageVersion("ggplot2")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}grid:      		                ${w}" ; R --no-restore -e 'packageVersion("grid")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}dplyr:     		                ${w}" ; R --no-restore -e 'packageVersion("dplyr")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}ggrepel:		                ${w}" ; R --no-restore -e 'packageVersion("ggrepel")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}EnhancedVolcano:                        ${w}" ; R --no-restore -e 'packageVersion("EnhancedVolcano")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}tidyverse:                              ${w}" ; R --no-restore -e 'packageVersion("tidyverse")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo "${g}*************************************************${w}"
+

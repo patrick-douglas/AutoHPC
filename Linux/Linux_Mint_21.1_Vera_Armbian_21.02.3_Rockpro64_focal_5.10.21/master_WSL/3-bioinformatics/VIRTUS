@@ -1,0 +1,74 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+echo "${y}*******************"
+echo 'VIRTUS'
+echo "*******************${w}"
+echo	""
+#Virtus2: Install pre
+#cwltool
+pip3 install --upgrade pip
+pip3 install cwltool
+pip3 install cwlref-runner 
+pip3 install numpy pandas scipy statsmodels seaborn
+#Virtus
+rm -rf /home/$user_name/VIRTUS
+
+#Virtus2
+rm -rf /home/$user_name/VIRTUS2
+su -c "cd ~/ && git clone https://github.com/yyoshiaki/VIRTUS2" $user_name
+
+su -c "cd ~/ && git clone https://github.com/yyoshiaki/VIRTUS" $user_name
+#Docker
+sudo apt-get remove docker docker-engine docker.io containerd runc
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --always-trust --dearmor -o /etc/apt/keyrings/docker.gpg 
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+VERSION_CODENAME=`cat /etc/apt/sources.list.d/docker.list | awk '{print $5}'`
+UBUNTU_CODENAME=`cat /etc/os-release | grep -i codename | grep UBUNTU | awk -F "=" '{print $2}'`
+sed -i "s/$VERSION_CODENAME/$UBUNTU_CODENAME/" /etc/apt/sources.list.d/docker.list
+apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+/home/$user_name/VIRTUS/bin/VIRTUS.PE.cwl --help | grep VIRTUS | grep v > VIRTUS_VER
+/home/$user_name/VIRTUS/bin/VIRTUS.PE.cwl --help | grep VIRTUS | grep v > VIRTUS2_VER
+VIRTUS2_VER=`cat VIRTUS2_VER`
+VIRTUS_VER=`cat VIRTUS_VER`
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+echo    "VIRTUS: $VIRTUS_VER"
+echo    "VIRTUS2: $VIRTUS_VER"
+echo    "${g}----------------------------"
+rm VIRTUS_VER VIRTUS2_VER

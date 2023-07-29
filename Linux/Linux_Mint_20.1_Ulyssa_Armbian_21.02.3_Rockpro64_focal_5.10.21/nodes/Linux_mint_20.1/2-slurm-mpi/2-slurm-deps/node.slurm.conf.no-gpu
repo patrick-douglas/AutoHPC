@@ -1,0 +1,7 @@
+#!/bin/bash
+SOCKETS=`lscpu | grep "Socket(s):"  | cut -d : -f 2 | awk '{print $1}'`
+THREADSPERCORE=`lscpu | grep "Thread(s) per core:" | cut -d : -f 2 | awk '{print $1}'`
+CORESPERSOCKET=`lscpu | grep "Core(s) per socket:" | cut -d : -f 2 | awk '{print $1}'`
+REALMEM=`free -m | grep Mem | awk '{print $2}'`
+
+echo "NodeName="$HOSTNAME" Sockets=$SOCKETS CoresPerSocket=$CORESPERSOCKET ThreadsPerCore=$THREADSPERCORE RealMemory=$REALMEM State=UNKNOWN"

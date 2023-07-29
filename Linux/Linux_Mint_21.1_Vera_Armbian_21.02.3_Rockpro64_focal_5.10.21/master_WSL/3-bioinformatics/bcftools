@@ -1,0 +1,52 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+
+#BCFtools
+echo "${y}*******************"
+echo 'BCFtools'
+echo "*******************${w}"
+
+bcf_tools_tar=/home/me/bcftools-1.9.tar.bz2
+bcf_tools_path=/home/me/bcftools-1.9/
+su -c "cd ~/ && wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2" $user_name
+su -c "cd ~/ && tar xjf  $bcf_tools_tar" $user_name
+su -c "cd $bcf_tools_path && ./configure" $user_name
+cd $bcf_tools_path && make -j $threads prefix=/usr/local/bin install
+cd $bcf_tools_path && sudo make install -j $threads
+sudo ln -s /usr/local/bin/bin/bcftools /usr/bin/bcftools
+rm -rf $bcf_tools_path $bcf_tools_tar
+
+echo "${g}"
+echo    "---------------------------------------------------"
+echo	"          Currently installed versions:"
+echo    "---------------------------------------------------${w}"
+bcftools -v | grep bcftools -A 1
+echo    "${g}---------------------------------------------"
+

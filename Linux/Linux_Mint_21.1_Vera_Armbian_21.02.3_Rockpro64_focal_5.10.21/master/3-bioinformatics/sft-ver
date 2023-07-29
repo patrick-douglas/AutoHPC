@@ -1,0 +1,44 @@
+#!/bin/bash
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+p=$(tput setaf 5)
+echo "${y}**************************"
+echo 'Software versions'
+echo "**************************${w}"
+
+paste <(echo "${g}Java        ${w}") <(javac -version | awk '{print $2}')
+paste <(echo "${g}XZ utils   ${w}") <(xz -V | grep xz | awk '{print $4}')
+paste <(echo "${g}bcftools   ${w}") <(bcftools --version | grep bcftools | awk '{print $2}')
+paste <(echo "${g}htslib   ${w}") <(samtools --version | grep htslib | awk '{print $3}' | grep .)
+paste <(echo "${g}samtools${w}") <(samtools --version | grep samtools | awk '{print $2}')
+paste <(echo "${g}cmake      ${w}") <(/usr/local/bin/cmake --version | grep version | awk '{print $3}')
+paste <(echo "${g}pcre      ${w}") <(pcre-config --version)
+paste <(echo "${g}pcre2      ${w}") <(pcre2-config --version)
+paste <(echo "${g}R            ${w}") <(R --version | grep version | grep R | awk '{print $3}')
+paste <(echo "${g}Jellyfish      ${w}") <(jellyfish --version | awk '{print $2}')
+paste <(echo "${g}Salmon      ${w}") <(salmon -v | awk '{print $2}')
+paste <(echo "${g}bowtie2      ${w}") <(bowtie2 --version | grep version | grep bowtie | awk '{print $NF}' FS=/ | awk '{print $3}')
+paste <(echo "${g}Trinity      ${w}") <(/usr/local/bin/Trinity --version | grep - | grep v2 | awk '{print $3}' | awk '{print $NF}' FS='-'| sed 's/v//' | grep -v Latest)
+paste <(echo "${g}ncbi-blast+  ${w}") <(blastx -version | grep Pack | awk '{print $NF}' FS=': ' | awk '{print $2}' | sed 's/,//')
+paste <(echo "${g}Python3      ${w}") <(python3 --version | awk '{print $2}')
+paste <(echo "${g}FastQC      ${w}") <(/home/*/FastQC/fastqc -v | awk '{print $2}')
+paste <(echo "${g}VIRTUS      ${w}") <(cat /home/*/VIRTUS/bin/VIRTUS.SE.cwl | grep 'doc: VIRTUS' | awk '{print $3}')
+paste <(echo "${g}VIRTUS2     ${w}") <(cat /home/*/VIRTUS2/bin/VIRTUS.SE.cwl | grep 'doc: VIRTUS' | awk '{print $3}')
+paste <(echo "${g}Wine     ${w}") <(wine --version | awk -F "-" '{print $2}')
+echo "${y}**************************${w}" 
+./R-packages_ver 
+echo ''
+if [[ $(lshw -C display | grep vendor) =~ NVIDIA ]]; then
+echo "${y}*******************************${w}"
+echo "NVIDIA driver and CUDA versions${y}"
+echo "*******************************${w}"
+paste <(echo "${g}NVIDIA Driver: ${w}") <(nvidia-smi | grep Driver | awk '{print $6}')
+paste <(echo "${g}CUDA:         ${w}") <(nvidia-smi | grep Driver | awk '{print $9}')
+echo "${y}*******************************${w}" 
+else
+  echo ''
+fi
+
+

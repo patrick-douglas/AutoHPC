@@ -1,0 +1,26 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 "
+echo "${y}*******************"
+echo 'wine'
+echo "*******************${w}"
+echo	""
+UBUNTU_CODENAME=`cat /etc/os-release | grep -i codename | grep UBUNTU | awk -F "=" '{print $2}'`
+cd ~/
+wget -nc https://dl.winehq.org/wine-builds/winehq.key
+sudo apt-key add winehq.key
+sudo apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $UBUNTU_CODENAME main"
+sudo apt-get update
+sudo apt-get install -y --install-recommends winehq-stable
+rm winehq.key
+
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+wine --version
+echo    "${g}----------------------------"

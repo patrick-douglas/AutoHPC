@@ -1,0 +1,142 @@
+#!/bin/bash
+mkdir -p /home/.tmp/
+#color defaults 
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+o=$(tput setaf 3) 
+p=$(tput setaf 5)
+
+USAGE="USAGE: $0 -c <clustername>"
+
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts c: option
+do
+case "${option}"
+in
+c) clustername=$OPTARG;;
+esac
+done
+
+if [ "$clustername" = "" ]; then
+"${g}Error, missing arguments:${y} -c | Cluster domain name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+echo "${g}"  # set fg g
+echo	"=================================${w}"
+echo	"Testing your network connection${g}"
+echo	"================================="
+#function of slash spin
+spinner()
+{
+    local pid=$1
+    local delay=0.75
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+( wget -q --tries=10 --timeout=20 --spider http://google.com ) &
+echo -n "Please wait... "
+spinner $!
+echo "DONE!${w}"
+
+if [[ $? -eq 0 ]]; then
+echo ""
+echo "Connection OK"
+echo "${g}"
+else
+echo "
+Ouch!!!
+--------------------------------------------------------------------------------------------------------
+You are OFFLINE, your computer need to be connected to the Internet to install updates and some packages
+If you continue without INTERNET connection the installation will no work
+--------------------------------------------------------------------------------------------------------
+"
+function pause(){
+   read -p "$*"
+}
+echo -e "setf 4" | tput -S
+pause 'Connect to the Internet and Press [Enter] key to continue or [Ctrl+C] to exit.'
+fi
+
+echo ""
+echo "==============================================================="
+echo "Cluster name or domain name (Example lbn):${w}"
+echo "$clustername ${g}"
+echo "==============================================================="
+echo "${w}"
+apt-get update
+
+#Configuring Ganlgia
+echo "${g}"
+echo "==============================================================="
+echo "===================Configuring Ganglia========================="
+echo "==============================================================="
+echo "${w}"
+apt-get purge ganglia-monitor rrdtool gmetad ganglia-webfrontend -y
+DEBIAN_FRONTEND=noninteractive apt-fast install ganglia-monitor rrdtool gmetad ganglia-webfrontend -y
+	
+cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/ganglia.conf
+
+service apache2 restart
+
+#Editing gmetad.conf
+
+sed -i "44s#.*#data_source \"$clustername\" master.$clustername.com#" /etc/ganglia/gmetad.conf
+
+#Editing gmond.conf
+apt-get purge gmetad -y && apt-get purge ganglia-monitor ganglia-webfrontend -y
+DEBIAN_FRONTEND=noninteractive apt-fast install ganglia-monitor rrdtool gmetad ganglia-webfrontend -y
+
+cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/ganglia.conf
+
+
+sed -i "44s#.*#data_source \"$clustername\" master.$clustername.com#" /etc/ganglia/gmetad.conf
+
+	sed -i "s/^  name = \"unspecified\"/  name = \"$clustername\"/" /etc/ganglia/gmond.conf
+	sed -i '35s/.*/# mcast_join = 239.2.11.71/' /etc/ganglia/gmond.conf
+	sed -i "/# mcast_join = 239.2.11.71/ a \  host = master.$clustername.com" /etc/ganglia/gmond.conf
+#	sed -i "/# mcast_join = 239.2.11.71/ a \  host = master" /etc/ganglia/gmond.conf
+	sed -i 's/^  mcast_join = 239.2.11.71/# mcast_join = 239.2.11.71/' /etc/ganglia/gmond.conf
+	sed -i 's/^  bind = 239.2.11.71/# bind = 239.2.11.71/' /etc/ganglia/gmond.conf
+
+
+#wget -O /root/ganglia-web-3.7.2.tar.gz https://ufpr.dl.sourceforge.net/project/ganglia/ganglia-web/3.7.2/ganglia-web-3.7.2.tar.gz
+#tar -zxf /root/ganglia-web-3.7.2.tar.gz -C /root/
+#make install -C /root/ganglia-web-3.7.2/
+#rm -rf /root/ganglia-web-3.7.2*
+
+#echo "ServerName localhost" | sudo tee /etc/apache2/conf-available/fqdn.conf
+#a2enconf fqdn
+service apache2 restart
+service ganglia-monitor restart
+service gmetad restart
+service apache2 restart
+apt-fast update -y
+
+
+# Restart ganglia-service after reboot
+echo '#!/bin/bash'>/etc/restart.ganglia.ini
+echo 'sleep 60'>>/etc/restart.ganglia.ini
+echo 'service gmetad restart'>>/etc/restart.ganglia.ini
+echo 'service ganglia-monitor restart'>>/etc/restart.ganglia.ini
+chmod +x /etc/restart.ganglia.ini
+(crontab -l 2>/dev/null; echo "@reboot /etc/restart.ganglia.ini") | crontab -
+/etc/restart.ganglia.ini
+

@@ -1,0 +1,431 @@
+[Previously saved workspace restored]
+
+trying URL 'http://cran.us.r-project.org/src/contrib/BiocManager_1.30.19.tar.gz'
+Content type 'application/x-gzip' length 264151 bytes (257 KB)
+==================================================
+downloaded 257 KB
+
+* installing *source* package ‘BiocManager’ ...
+** package ‘BiocManager’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (BiocManager)
+
+The downloaded source packages are in
+	‘/tmp/RtmpWcyTG2/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+[Previously saved workspace restored]
+
+[Previously saved workspace restored]
+
+trying URL 'http://cran.us.r-project.org/src/contrib/ggalt_0.4.0.tar.gz'
+Content type 'application/x-gzip' length 2155519 bytes (2.1 MB)
+==================================================
+downloaded 2.1 MB
+
+* installing *source* package ‘ggalt’ ...
+** package ‘ggalt’ successfully unpacked and MD5 sums checked
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (ggalt)
+
+The downloaded source packages are in
+	‘/tmp/RtmpC15zr1/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+[Previously saved workspace restored]
+
+trying URL 'http://cran.us.r-project.org/src/contrib/proj4_1.0-12.tar.gz'
+Content type 'application/x-gzip' length 42887 bytes (41 KB)
+==================================================
+downloaded 41 KB
+
+* installing *source* package ‘proj4’ ...
+** package ‘proj4’ successfully unpacked and MD5 sums checked
+** using staged installation
+** libs
+installing to /usr/local/lib/R/library/00LOCK-proj4/00new/proj4/libs
+** R
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (proj4)
+
+The downloaded source packages are in
+	‘/tmp/RtmpJwpobB/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'edgeR' 
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Installing package(s) 'goseq'
+also installing the dependencies ‘xml2’, ‘XML’, ‘restfulr’, ‘biomaRt’, ‘rtracklayer’, ‘GenomicFeatures’, ‘geneLenDataBase’
+
+trying URL 'https://cloud.r-project.org/src/contrib/xml2_1.3.3.tar.gz'
+Content type 'application/x-gzip' length 283965 bytes (277 KB)
+==================================================
+downloaded 277 KB
+
+trying URL 'https://cloud.r-project.org/src/contrib/XML_3.99-0.13.tar.gz'
+Content type 'application/x-gzip' length 970757 bytes (948 KB)
+==================================================
+downloaded 948 KB
+
+trying URL 'https://cloud.r-project.org/src/contrib/restfulr_0.0.15.tar.gz'
+Content type 'application/x-gzip' length 15033 bytes (14 KB)
+==================================================
+downloaded 14 KB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/biomaRt_2.54.0.tar.gz'
+Content type 'application/x-gzip' length 668177 bytes (652 KB)
+==================================================
+downloaded 652 KB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/rtracklayer_1.58.0.tar.gz'
+Content type 'application/x-gzip' length 4018653 bytes (3.8 MB)
+==================================================
+downloaded 3.8 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/GenomicFeatures_1.50.3.tar.gz'
+Content type 'application/x-gzip' length 1177675 bytes (1.1 MB)
+==================================================
+downloaded 1.1 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/data/experiment/src/contrib/geneLenDataBase_1.34.0.tar.gz'
+Content type 'application/x-gzip' length 100436710 bytes (95.8 MB)
+==================================================
+downloaded 95.8 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/goseq_1.50.0.tar.gz'
+Content type 'application/x-gzip' length 1779532 bytes (1.7 MB)
+==================================================
+downloaded 1.7 MB
+
+* installing *source* package ‘xml2’ ...
+** package ‘xml2’ successfully unpacked and MD5 sums checked
+** using staged installation
+Package libxml-2.0 was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libxml-2.0.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'libxml-2.0' found
+Package libxml-2.0 was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libxml-2.0.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'libxml-2.0' found
+ERROR: configuration failed for package ‘xml2’
+* removing ‘/usr/local/lib/R/library/xml2’
+* installing *source* package ‘XML’ ...
+** package ‘XML’ successfully unpacked and MD5 sums checked
+** using staged installation
+ERROR: configuration failed for package ‘XML’
+* removing ‘/usr/local/lib/R/library/XML’
+ERROR: dependency ‘XML’ is not available for package ‘restfulr’
+* removing ‘/usr/local/lib/R/library/restfulr’
+ERROR: dependencies ‘XML’, ‘xml2’ are not available for package ‘biomaRt’
+* removing ‘/usr/local/lib/R/library/biomaRt’
+ERROR: dependencies ‘XML’, ‘restfulr’ are not available for package ‘rtracklayer’
+* removing ‘/usr/local/lib/R/library/rtracklayer’
+ERROR: dependencies ‘rtracklayer’, ‘biomaRt’ are not available for package ‘GenomicFeatures’
+* removing ‘/usr/local/lib/R/library/GenomicFeatures’
+ERROR: dependencies ‘rtracklayer’, ‘GenomicFeatures’ are not available for package ‘geneLenDataBase’
+* removing ‘/usr/local/lib/R/library/geneLenDataBase’
+ERROR: dependency ‘geneLenDataBase’ is not available for package ‘goseq’
+* removing ‘/usr/local/lib/R/library/goseq’
+
+The downloaded source packages are in
+	‘/tmp/RtmpZ6qwL2/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+Warning messages:
+1: In install.packages(...) :
+  installation of package ‘xml2’ had non-zero exit status
+2: In install.packages(...) :
+  installation of package ‘XML’ had non-zero exit status
+3: In install.packages(...) :
+  installation of package ‘restfulr’ had non-zero exit status
+4: In install.packages(...) :
+  installation of package ‘biomaRt’ had non-zero exit status
+5: In install.packages(...) :
+  installation of package ‘rtracklayer’ had non-zero exit status
+6: In install.packages(...) :
+  installation of package ‘GenomicFeatures’ had non-zero exit status
+7: In install.packages(...) :
+  installation of package ‘geneLenDataBase’ had non-zero exit status
+8: In install.packages(...) :
+  installation of package ‘goseq’ had non-zero exit status
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'limma' 
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Installing package(s) 'Glimma'
+also installing the dependencies ‘XML’, ‘annotate’, ‘geneplotter’, ‘DESeq2’
+
+trying URL 'https://cloud.r-project.org/src/contrib/XML_3.99-0.13.tar.gz'
+Content type 'application/x-gzip' length 970757 bytes (948 KB)
+==================================================
+downloaded 948 KB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/annotate_1.76.0.tar.gz'
+Content type 'application/x-gzip' length 1473810 bytes (1.4 MB)
+==================================================
+downloaded 1.4 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/geneplotter_1.76.0.tar.gz'
+Content type 'application/x-gzip' length 1394395 bytes (1.3 MB)
+==================================================
+downloaded 1.3 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/DESeq2_1.38.2.tar.gz'
+Content type 'application/x-gzip' length 2111897 bytes (2.0 MB)
+==================================================
+downloaded 2.0 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/Glimma_2.8.0.tar.gz'
+Content type 'application/x-gzip' length 11685778 bytes (11.1 MB)
+==================================================
+downloaded 11.1 MB
+
+* installing *source* package ‘XML’ ...
+** package ‘XML’ successfully unpacked and MD5 sums checked
+** using staged installation
+ERROR: configuration failed for package ‘XML’
+* removing ‘/usr/local/lib/R/library/XML’
+ERROR: dependency ‘XML’ is not available for package ‘annotate’
+* removing ‘/usr/local/lib/R/library/annotate’
+ERROR: dependency ‘annotate’ is not available for package ‘geneplotter’
+* removing ‘/usr/local/lib/R/library/geneplotter’
+ERROR: dependency ‘geneplotter’ is not available for package ‘DESeq2’
+* removing ‘/usr/local/lib/R/library/DESeq2’
+ERROR: dependency ‘DESeq2’ is not available for package ‘Glimma’
+* removing ‘/usr/local/lib/R/library/Glimma’
+
+The downloaded source packages are in
+	‘/tmp/RtmpWdPFwY/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+Warning messages:
+1: In install.packages(...) :
+  installation of package ‘XML’ had non-zero exit status
+2: In install.packages(...) :
+  installation of package ‘annotate’ had non-zero exit status
+3: In install.packages(...) :
+  installation of package ‘geneplotter’ had non-zero exit status
+4: In install.packages(...) :
+  installation of package ‘DESeq2’ had non-zero exit status
+5: In install.packages(...) :
+  installation of package ‘Glimma’ had non-zero exit status
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'RCurl' 
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Installing package(s) 'annotate'
+also installing the dependency ‘XML’
+
+trying URL 'https://cloud.r-project.org/src/contrib/XML_3.99-0.13.tar.gz'
+Content type 'application/x-gzip' length 970757 bytes (948 KB)
+==================================================
+downloaded 948 KB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/annotate_1.76.0.tar.gz'
+Content type 'application/x-gzip' length 1473810 bytes (1.4 MB)
+==================================================
+downloaded 1.4 MB
+
+* installing *source* package ‘XML’ ...
+** package ‘XML’ successfully unpacked and MD5 sums checked
+** using staged installation
+ERROR: configuration failed for package ‘XML’
+* removing ‘/usr/local/lib/R/library/XML’
+ERROR: dependency ‘XML’ is not available for package ‘annotate’
+* removing ‘/usr/local/lib/R/library/annotate’
+
+The downloaded source packages are in
+	‘/tmp/RtmpObykyL/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+Warning messages:
+1: In install.packages(...) :
+  installation of package ‘XML’ had non-zero exit status
+2: In install.packages(...) :
+  installation of package ‘annotate’ had non-zero exit status
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'GenomicRanges' 
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'SummarizedExperiment' 
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Installing package(s) 'genefilter'
+also installing the dependencies ‘XML’, ‘annotate’
+
+trying URL 'https://cloud.r-project.org/src/contrib/XML_3.99-0.13.tar.gz'
+Content type 'application/x-gzip' length 970757 bytes (948 KB)
+==================================================
+downloaded 948 KB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/annotate_1.76.0.tar.gz'
+Content type 'application/x-gzip' length 1473810 bytes (1.4 MB)
+==================================================
+downloaded 1.4 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/genefilter_1.80.2.tar.gz'
+Content type 'application/x-gzip' length 716103 bytes (699 KB)
+==================================================
+downloaded 699 KB
+
+* installing *source* package ‘XML’ ...
+** package ‘XML’ successfully unpacked and MD5 sums checked
+** using staged installation
+ERROR: configuration failed for package ‘XML’
+* removing ‘/usr/local/lib/R/library/XML’
+ERROR: dependency ‘XML’ is not available for package ‘annotate’
+* removing ‘/usr/local/lib/R/library/annotate’
+ERROR: dependency ‘annotate’ is not available for package ‘genefilter’
+* removing ‘/usr/local/lib/R/library/genefilter’
+
+The downloaded source packages are in
+	‘/tmp/Rtmp690lRE/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+Warning messages:
+1: In install.packages(...) :
+  installation of package ‘XML’ had non-zero exit status
+2: In install.packages(...) :
+  installation of package ‘annotate’ had non-zero exit status
+3: In install.packages(...) :
+  installation of package ‘genefilter’ had non-zero exit status
+[Previously saved workspace restored]
+
+Bioconductor version 3.16 (BiocManager 1.30.19), R 4.2.2 (2022-10-31)
+Installing package(s) 'geneplotter'
+also installing the dependencies ‘XML’, ‘annotate’
+
+trying URL 'https://cloud.r-project.org/src/contrib/XML_3.99-0.13.tar.gz'
+Content type 'application/x-gzip' length 970757 bytes (948 KB)
+==================================================
+downloaded 948 KB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/annotate_1.76.0.tar.gz'
+Content type 'application/x-gzip' length 1473810 bytes (1.4 MB)
+==================================================
+downloaded 1.4 MB
+
+trying URL 'https://bioconductor.org/packages/3.16/bioc/src/contrib/geneplotter_1.76.0.tar.gz'
+Content type 'application/x-gzip' length 1394395 bytes (1.3 MB)
+==================================================
+downloaded 1.3 MB
+
+* installing *source* package ‘XML’ ...
+** package ‘XML’ successfully unpacked and MD5 sums checked
+** using staged installation
+ERROR: configuration failed for package ‘XML’
+* removing ‘/usr/local/lib/R/library/XML’
+ERROR: dependency ‘XML’ is not available for package ‘annotate’
+* removing ‘/usr/local/lib/R/library/annotate’
+ERROR: dependency ‘annotate’ is not available for package ‘geneplotter’
+* removing ‘/usr/local/lib/R/library/geneplotter’
+
+The downloaded source packages are in
+	‘/tmp/RtmpUNS5ma/downloaded_packages’
+Updating HTML index of packages in '.Library'
+Making 'packages.html' ... done
+Warning messages:
+1: In install.packages(...) :
+  installation of package ‘XML’ had non-zero exit status
+2: In install.packages(...) :
+  installation of package ‘annotate’ had non-zero exit status
+3: In install.packages(...) :
+  installation of package ‘geneplotter’ had non-zero exit status
+[Previously saved workspace restored]
+
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+[Previously saved workspace restored]
+
+
+Execution halted
+[Previously saved workspace restored]
+
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted
+
+Execution halted

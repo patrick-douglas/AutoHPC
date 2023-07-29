@@ -1,0 +1,123 @@
+#!/bin/bash
+mkdir -p /home/.tmp/
+#color defaults 
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+o=$(tput setaf 3) 
+p=$(tput setaf 5)
+
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User domain name | <string>
+${w}$USAGE"
+exit 1
+fi
+echo "${g}"  # set fg g
+echo	"=================================${w}"
+echo	"Testing your network connection${g}"
+echo	"================================="
+#function of slash spin
+spinner()
+{
+    local pid=$1
+    local delay=0.75
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+( wget -q --tries=10 --timeout=20 --spider http://google.com ) &
+echo -n "Please wait... "
+spinner $!
+echo "DONE!${w}"
+
+if [[ $? -eq 0 ]]; then
+echo ""
+echo "Connection OK"
+echo "${g}"
+else
+echo "
+Ouch!!!
+--------------------------------------------------------------------------------------------------------
+You are OFFLINE, your computer need to be connected to the Internet to install updates and some packages
+If you continue without INTERNET connection the installation will no work
+--------------------------------------------------------------------------------------------------------
+"
+function pause(){
+   read -p "$*"
+}
+echo -e "setf 4" | tput -S
+pause 'Connect to the Internet and Press [Enter] key to continue or [Ctrl+C] to exit.'
+fi
+
+echo	"${g}"
+echo	"---------------------------------------------------------------------------------"
+echo    "---------------------- Phase 1: Identify the Cluster ----------------------------"
+echo    "---------------------------------------------------------------------------------"
+echo "${w}"
+apt-get update
+#apt-get install curl language-pack-pt -y
+apt-get install -y expect
+/bin/bash -c "$(curl -sL https://git.io/vokNn)"
+#DEBIAN_FRONTEND=noninteractive apt-get -y install apt-fast
+sed -i 's/^#_MAXNUM=5/_MAXNUM=16/' /etc/apt-fast.conf
+
+#Unlock resolv.conf file due to previows run of this script
+chattr -i /etc/resolv.conf
+#Install required packages	
+echo	"${g}----------------------------------------------------------------------------------"
+echo    "----------------------- Phase 2: Updating the system -----------------------------"
+echo    "----------------------------------------------------------------------------------"
+echo	"${w}"
+#DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical apt-fast -q -y -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" upgrade
+apt-fast update
+apt-fast install -y debconf-utils
+apt-fast update
+
+#Java 17 (NOTA: não usar apt-fast se não o auto-accept licensing não funciona)
+echo "deb http://ppa.launchpad.net/linuxuprising/java/ubuntu focal main" | tee /etc/apt/sources.list.d/linuxuprising-java.list
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 73C3DB2A
+echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections
+apt-get update 
+apt-get install -y oracle-java17-installer
+
+echo	"${g}----------------------------------------------------------------------------------"
+echo    "------------------ Phase 3: Installing required packages -------------------------"
+echo    "----------------------------------------------------------------------------------"
+echo ""
+
+echo "installing other packages:${w}"
+apt-fast install -y isc-dhcp-server wget nfs-common bind9 ntp gcc make vim
+apt-fast install -y openssh-client openssh-server npm
+DEBIAN_FRONTEND=noninteractive apt-fast install --yes vim build-essential gcc-multilib apt-utils zlib1g-dev perl perl-base git libtbb-dev libxml2-dev openssh-client openssh-server ntp ganglia-monitor nfs-common g++ make
+echo ""
+apt-fast install --yes -y apt-utils perl perl-base git libtbb-dev build-essential python3-pip libtool
+pip3 install --upgrade pip
+sudo apt-get install python-setuptools -y
+sudo apt-get install python3-setuptools -y
+su -c 'sudo pip install gffutils' $user_name
+su -c 'pip install numpy'  $user_name
+su -c 'pip install --upgrade pip' $user_name
+

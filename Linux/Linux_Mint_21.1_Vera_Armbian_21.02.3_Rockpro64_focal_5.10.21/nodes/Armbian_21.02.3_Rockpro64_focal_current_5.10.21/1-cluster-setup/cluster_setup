@@ -1,0 +1,432 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+rm -rf /home/.tmp
+rm -rf /home/.tmp/
+mkdir -p /home/.tmp/
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3)
+p=$(tput setaf 5)
+pb=$(tput bold)
+
+USAGE="USAGE: $0 -c <cluster_name> -p <ldappassword> -u <username> -n <nodename> -w <networkinterfacename> -i <node IP address>"
+
+if [ "$#" -lt "6" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+    var2=$4;
+fi
+
+while getopts c:n:p:u:w:i: option
+do
+case "${option}"
+in
+c) cluster_name=${OPTARG};;
+n) node_name=${OPTARG};;
+i) node_ip=${OPTARG};;
+p) ldappassword=${OPTARG};;
+u) user_name=$OPTARG;;
+w) networkinterface=$OPTARG;;
+esac
+done
+
+if [ "$cluster_name" = "" ]; then
+"${g}Error, missing arguments:${y} -c | Cluster domain name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+if [ "$node_name" = "" ]; then
+"${g}Error, missing arguments:${y} -n | Node hostname | <string>
+${w}$USAGE"
+exit 1
+fi
+
+if [ "$node_ip" = "" ]; then
+"${g}Error, missing arguments:${y} -i | Node IP addres | <string>
+${w}$USAGE"
+exit 1
+fi
+
+if [ "$ldappassword" = "" ]; then
+"${g}Error, missing arguments:${y} -p | ldap password | <string>
+${w}$USAGE"
+exit 1
+fi
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+if [ "$networkinterface" = "" ]; then
+"${g}Error, missing arguments:${y} -w | Network interface name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+echo "${y}"
+echo	"---------------------------------------------------------------------------------"
+echo    "----------------- Phase 1: Identify the Cluster and the node --------------------"
+echo    "---------------------------------------------------------------------------------"
+echo 	""
+echo    "---------------------------------------------------------------------------------"
+echo	"${g}Cluster name:${w}"	
+echo	"$cluster_name"
+echo	"${g}New hostname:${w}"
+echo	"$node_name"
+echo	"${g}Node IP address:${w}"
+echo	"$node_ip"
+echo	"${g}LDAP password:${w}"
+echo	"$ldappassword"
+echo	"${g}User name:${w}"
+echo	"$user_name"
+echo	"${g}network interface name:${w}"
+echo	"$networkinterface"
+echo "${g}---------------------------------------------------------------------"
+echo "${w}"
+
+echo    "---------------------------------------------------------------------"
+echo	"                       Setting up hardware"
+echo    "---------------------------------------------------------------------"
+#setup user and password
+echo '#!/usr/bin/expect' > setup-ssh.ex
+echo "spawn ssh $node_ip " >> setup-ssh.ex
+echo 'expect "Are you sure you want to continue connecting"' >> setup-ssh.ex
+echo "send \"yes\\r\"" >> setup-ssh.ex
+echo "expect \"root@$node_ip's password:\"" >> setup-ssh.ex
+echo 'send "1234\r"' >> setup-ssh.ex
+echo 'expect "New root password:"' >> setup-ssh.ex
+echo 'send "rockpro64\r"' >> setup-ssh.ex
+echo 'expect "Repeat password:"'  >> setup-ssh.ex
+echo 'send "rockpro64\r"'  >> setup-ssh.ex
+echo 'expect "Choose default system command shell:"'  >> setup-ssh.ex
+echo 'send "1"'  >> setup-ssh.ex
+echo 'expect "Please provide a username (eg. your forename):"'  >> setup-ssh.ex
+echo "send \"$user_name\r\""  >> setup-ssh.ex
+echo 'expect "Create password:"'  >> setup-ssh.ex
+echo 'send "rockpro64\r"'  >> setup-ssh.ex
+echo 'expect "Repeat password:"'  >> setup-ssh.ex
+echo 'send "rockpro64\r"'  >> setup-ssh.ex
+echo 'expect "Please provide your real name:"'  >> setup-ssh.ex
+echo "send \"\025\025$user_name\r\""  >> setup-ssh.ex
+echo 'expect "Set user language based on your location?"'  >> setup-ssh.ex
+echo 'send "n"'  >> setup-ssh.ex
+echo "send \"scp -r $user_name@master:/home/$user_name/.ssh .\r\"" >> setup-ssh.ex
+echo 'expect "Are you sure you want to continue connecting"' >> setup-ssh.ex
+echo "send \"yes\r\"" >> setup-ssh.ex
+echo "expect \"$user_name@master's password:\"" >> setup-ssh.ex
+echo "send \"$ldappassword\r\"" >> setup-ssh.ex
+echo 'send "exit\r"'  >> setup-ssh.ex
+echo 'expect eof'  >> setup-ssh.ex
+chmod +x setup-ssh.ex
+./setup-ssh.ex && rm -rf setup-ssh.ex
+#allow short password
+ssh $node_ip 'sed -i "25s|.*|password        [success=1 default=ignore]      pam_unix.so sha512 minlen=3|g" /etc/pam.d/common-password'
+#change "rockpro64" password to $user_password
+echo '#!/usr/bin/expect' > setup-ssh.ex
+echo "spawn ssh $node_ip " >> setup-ssh.ex
+echo "send \"su $user_name\r\""  >> setup-ssh.ex
+echo "send \"passwd $user_name\r\""  >> setup-ssh.ex
+echo 'expect "Current password:"' >> setup-ssh.ex
+echo "send \"rockpro64\r\"" >> setup-ssh.ex
+echo 'expect "New password:"' >> setup-ssh.ex
+echo "send \"$ldappassword\r\"" >> setup-ssh.ex
+echo 'expect "Retype new password:"' >> setup-ssh.ex
+echo "send \"$ldappassword\r\"" >> setup-ssh.ex
+echo "send \"cd\r\"" >> setup-ssh.ex
+echo "send \"scp -r $user_name@master:/home/$user_name/.ssh .\r\"" >> setup-ssh.ex
+echo 'expect "Are you sure you want to continue connecting"' >> setup-ssh.ex
+echo "send \"yes\r\"" >> setup-ssh.ex
+echo "expect \"$user_name@master's password:\"" >> setup-ssh.ex
+echo "send \"$ldappassword\r\"" >> setup-ssh.ex
+echo 'send "exit\r"'  >> setup-ssh.ex
+echo 'expect eof'  >> setup-ssh.ex
+chmod +x setup-ssh.ex
+./setup-ssh.ex && rm -rf setup-ssh.ex
+
+
+sleep 5 && ssh $node_ip -q "exit" 
+while test $? -gt 0
+do
+   sleep 30
+   echo "Trying ssh to${y} $node_name${g}..."
+done
+
+#reboot
+ssh $node_ip -q "reboot"
+echo "${g}"
+echo "----------------------------------------------------------"
+echo "${p}$node_name ${g}was rebooted, waiting until it is online."
+echo "----------------------------------------------------------${w}"
+
+sleep 5 && ssh $node_ip -q "exit" 
+while test $? -gt 0
+do
+   sleep 10
+   echo "Trying ssh to${y} $node_ip${g}..."
+   ssh $node_ip -q "exit"
+done
+#create swap
+ssh $node_ip "touch /var/swapfile"
+ssh $node_ip "chmod 600 /var/swapfile"
+echo    "${y}-------------------------------------------------------------------"
+echo	"Creating a new swap partition, this take a long time...be patient!!"
+echo    "-------------------------------------------------------------------${w}"
+ssh $node_ip "swapoff /var/swapfile 2> /dev/null"
+ssh $node_ip "dd if=/dev/zero of=/var/swapfile bs=3874k count=1000 status=progress"
+ssh $node_ip "mkswap /var/swapfile"
+ssh $node_ip "swapon /var/swapfile"
+ssh $node_ip "echo '/var/swapfile	none	swap	sw	0	0' >> /etc/fstab"
+ssh $node_ip "apt-get update -y -qq"
+
+# Edit hostname file 
+echo	"${g}"
+echo    "----------------------------------------------------------------------------------"
+echo	"Changing hostname to${p} $node_name${g}..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+ssh $node_ip "echo \"$node_name\"> /etc/hostname"
+echo -ne '                                                                          (100%)\r'
+echo -ne '\n'
+
+#reboot
+ssh $node_ip -q "reboot"
+echo "${g}"
+echo "----------------------------------------------------------"
+echo "${p}$node_name ${g}was rebooted, waiting until it is online."
+echo "----------------------------------------------------------"
+
+sleep 5 && ssh $node_name -q "exit" 
+while test $? -gt 0
+do
+   sleep 30
+   echo "Trying ssh to${y} $node_name${g}..."
+
+echo '#!/usr/bin/expect' > expect.ex
+echo "spawn ssh $node_name -q exit" >> expect.ex
+echo 'expect "Are you sure you want to continue connecting"' >> expect.ex
+echo "send \"yes\\r\"" >> expect.ex
+echo "expect eof" >> expect.ex
+chmod +x expect.ex
+./expect.ex && rm -rf expect.ex
+done
+
+#Set -j option during make process
+	threads=`ssh $node_name nproc`
+
+echo -e "setf 2" | tput -S	
+echo	"----------------------------------------------------------------------------------"
+echo    "------------------ Phase 2: Installing required packages -------------------------"
+echo    "----------------------------------------------------------------------------------"
+echo "${w}"	
+
+ssh $node_name 'locale-gen pt_BR.UTF-8'
+ssh $node_name "sudo add-apt-repository -y ppa:apt-fast/stable"
+ssh $node_name "apt-get update -y"
+ssh $node_name 'DEBIAN_FRONTEND=noninteractive apt-get -y install apt-fast'
+ssh $node_name "sed -i 's/^_MAXNUM=5/_MAXNUM=16/' /etc/apt-fast.conf"
+	ssh $node_name "apt-fast -y install software-properties-common"
+	ssh $node_name 'DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical apt-fast -q -y -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" upgrade'
+	ssh $node_name "apt-fast update -qq"
+    ssh $node_name 'apt-fast update'
+	ssh $node_name 'DEBIAN_FRONTEND=noninteractive apt-fast install --yes vim build-essential apt-utils zlib1g-dev perl perl-base git libtbb-dev libxml2-dev openssh-client openssh-server ntp ganglia-monitor nfs-common g++ make'
+	ssh $node_name "DEBIAN_FRONTEND=noninteractive apt-fast install -y libpam-ldap nscd"
+	ssh $node_name "sed -i '27s/.*/base dc=$cluster_name,dc=com/' /etc/ldap.conf"
+	ssh $node_name "sed -i '30s,.*,uri ldap://master.$cluster_name.com,' /etc/ldap.conf"
+	ssh $node_name "sed -i '52s/.*/rootbinddn cn=admin,dc=$cluster_name,dc=com/' /etc/ldap.conf"
+
+#Edit interfaces file
+
+		echo "# The primary network interface" >> /home/.tmp/interfaces
+		echo "auto $networkinterface" >> /home/.tmp/interfaces
+		echo "iface $networkinterface inet dhcp" >> /home/.tmp/interfaces
+		scp -r /home/.tmp/interfaces root@$node_name:/etc/network
+
+	echo /home/.tmp/dhclient-$networkinterface.conf
+	> /home/.tmp/dhclient-$networkinterface.conf
+		echo "send fqdn.fqdn \"$node_name\";" >> /home/.tmp/dhclient-$networkinterface.conf
+		echo "send fqdn.encoded on;" >> /home/.tmp/dhclient-$networkinterface.conf
+		echo "send fqdn.server-update off;" >> /home/.tmp/dhclient-$networkinterface.conf
+		echo "also request fqdn.fqdn;" >> /home/.tmp/dhclient-$networkinterface.conf
+			scp -r /home/.tmp/dhclient-$networkinterface.conf root@$node_name:/etc/dhcp/
+
+ssh $node_name ifup $networkinterface
+
+
+#Mounting the master directories
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Mounting the directories..."
+echo    "----------------------------------------------------------------------------------"
+ 	ssh $node_name "mount master.$cluster_name.com:/root /root"
+	ssh $node_name "mount master.$cluster_name.com:/home /home"
+	ssh $node_name 'mkdir -p /export'
+	ssh $node_name "mount master.$cluster_name.com:/export /export"
+#	ssh $node_name 'mkdir -p /storage'
+#	ssh $node_name "mount master:/storage /storage"
+
+#Editing the npt file
+
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Editing the npt file and start ntp service..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+	ssh $node_name "sed -i 's/^pool 0.ubuntu.pool.ntp.org iburst/server master.$cluster_name.com/' /etc/ntp.conf"
+	ssh $node_name "sed -i '22s/.*/#/' /etc/ntp.conf"
+	ssh $node_name "sed -i '23s/.*/#/' /etc/ntp.conf"
+	ssh $node_name "sed -i '24s/.*/#/' /etc/ntp.conf"
+	ssh $node_name "service ntp start"
+echo -ne '                                                                         (100%)\r'
+echo -ne '\n'
+
+#Editing fstab file
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Editing the fstab file..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+scp root@$node_name:/etc/fstab /home/.tmp
+
+LINE="master.$cluster_name.com:/root	/root	nfs nfsvers=3,nolock	0 0"
+FILE=/home/.tmp/fstab
+grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+scp /home/.tmp/fstab root@$node_name:/etc
+scp root@$node_name:/etc/fstab /home/.tmp
+
+LINE="master.$cluster_name.com:/home	/home	nfs nfsvers=3,nolock	0 0"
+FILE=/home/.tmp/fstab
+grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+scp /home/.tmp/fstab root@$node_name:/etc
+
+scp root@$node_name:/etc/fstab /home/.tmp
+
+LINE="master.$cluster_name.com:/export	/export	nfs nfsvers=3,nolock	0 0"
+FILE=/home/.tmp/fstab
+grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+#LINE="master.$cluster_name.com:/storage	/storage	nfs nfsvers=3,nolock	0 0"
+#FILE=/home/.tmp/fstab
+#grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+scp /home/.tmp/fstab root@$node_name:/etc
+echo -ne '                                                                          (100%)\r'
+echo -ne '\n'
+
+#Setting up ganglia
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Configuring Ganglia..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+
+	ssh $node_name	"apt-get purge ganglia-monitor -y"
+ssh $node_name	"apt-fast install -y autoconf automake pkg-config libz-dev libtool ncompress make gcc git libexpat1-dev libapr1-dev libconfuse-dev libpcre3-dev rrdtool gperf"
+	ssh $node_name	"apt-fast install ganglia-monitor -y"
+
+	ssh $node_name  "sed -i '/ mcast_join = 239.2.11.71/ a \  host = master.$cluster_name.com' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i -e '44d'  /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i 's/^  deaf = no             /  deaf = yes             /' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i 's/^  name = \"unspecified\"/  name = \"$cluster_name\"/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i '35s/^/#/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i '42s/^/#/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i '43s/^/#/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i '44s/^/#/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i '45s/^/#/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i '46s/^/#/' /etc/ganglia/gmond.conf"
+	ssh $node_name "sed -i 's/^  name = \"unspecified\"/  name = \"$cluster_name\"/' /etc/ganglia/gmond.conf"
+    ssh $node_name "sed -i '/  send_metadata_interval = 0/ a \  override_hostname = $node_name' /etc/ganglia/gmond.conf"
+    ssh $node_name service ganglia-monitor restart
+	
+
+ssh $node_name apt-fast update
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Configuring nsswitch..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+#OK Edit nsswitch file #T
+	ssh $node_name "sed -i '7s/.*/passwd:         compat ldap/' /etc/nsswitch.conf"
+	ssh $node_name "sed -i '8s/.*/group:          compat ldap/' /etc/nsswitch.conf"
+	ssh $node_name "sed -i '9s/.*/shadow:         compat ldap/' /etc/nsswitch.conf"
+	ssh $node_name "sed -i '12s/.*/hosts:          files dns/' /etc/nsswitch.conf"
+
+# Edit the pam file
+
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Configuring pam..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+
+scp root@$node_name:/etc/pam.d/common-session /home/.tmp
+
+sed -i '/# end of pam-auth-update config/d' /home/.tmp/common-session
+sed -i '/session required	pam_mkhomedir.so	skel=/etc/skel  umask=0022/d' /home/.tmp/common-session
+
+LINE='session required		pam_mkhomedir.so		skel=/etc/skel	umask=0022'
+FILE=/home/.tmp/common-session
+	grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+	LINE='# end of pam-auth-update config'
+	FILE=/home/.tmp/common-session
+	grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
+
+scp /home/.tmp/common-session root@$node_name:/etc/pam.d/common-session
+echo -ne '                                                                          (100%)\r'
+echo -ne '\n'
+
+
+#Edit sudoers
+echo -e "setf 2" | tput -S
+echo	" "
+echo    "----------------------------------------------------------------------------------"
+echo	"Configuring sudoers..."
+echo    "----------------------------------------------------------------------------------"
+echo -e "setf 7" | tput -S
+scp root@$node_name:/etc/sudoers /home/.tmp
+sed -i '/%admin ALL=(ALL) ALL/ a \%admins ALL=(ALL) ALL' /home/.tmp/sudoers
+scp /home/.tmp/sudoers root@$node_name:/etc/sudoers
+echo -ne '                                                                          (100%)\r'
+echo -ne '\n'
+
+echo "${g}"
+echo	"------------------------------------------------------------------------------------"
+echo    "---------------------- We finhished the node configuration -------------------------"
+echo    "------------------------------------------------------------------------------------"
+echo    "In the next step the PC need to be restarted, to test try run ssh to the node or try" 
+echo 	"view the node through ganglia on web browser by typing 11.0.0.1/ganglia"
+echo    "${p}$node_name${g}"
+echo    "------------------------------------------------------------------------------------"
+echo    "${p}"
+echo	"suport by e-mail to patrick@ufpa.br ${g}"
+echo    ""
+echo    'Thank you :-D'
+echo	" "
+echo "
+                                 ___        ______    __     __
+                                |   |      |	  \  |  \   |  | 
+                                |   |      |   D   ) |   \  |  | 
+                                |   |      |      /  |    \ |  | 
+                                |   |____  |      \  |  |\ \|  | 
+                                |        | |   D   ) |  | \    |  
+                                |________| |______/  |__|  \___|
+
+                   Laboratório de Biologia Molecular e Neuroecologia  - IFPA 
+"
+	ssh $node_name "shutdown -r 0"
+rm -rf /home/.tmp/
+rm -rf /home/.tmp

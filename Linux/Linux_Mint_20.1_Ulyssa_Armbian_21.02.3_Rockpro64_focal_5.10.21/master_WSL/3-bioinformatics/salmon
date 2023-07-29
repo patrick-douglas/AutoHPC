@@ -1,0 +1,47 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+
+#salmon
+echo "${y}*******************"
+echo 'salmon'
+echo "*******************${w}"
+salmon_url=https://github.com/COMBINE-lab/salmon/releases/download/v1.6.0/salmon-1.6.0_linux_x86_64.tar.gz
+salmon_tar=/home/$user_name/salmon-1.6.0_linux_x86_64.tar.gz
+su -c "cd ~/ && wget $salmon_url" $user_name
+tar -zxf $salmon_tar --directory /usr/local/bin
+chown -R $user_name:$user_name /usr/local/bin/salmon-1.6.0_linux_x86_64
+rm -rf $salmon_tar /usr/local/bin/salmon
+ln -s /usr/local/bin/salmon-1.6.0_linux_x86_64/bin/salmon /usr/local/bin/salmon
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+/usr/local/bin/salmon-1.6.0_linux_x86_64/bin/salmon -v
+echo    "${g}----------------------------"

@@ -1,0 +1,67 @@
+#!/bin/bash
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+p=$(tput setaf 5) 
+USAGE="USAGE: $0 -n <nodename>"
+
+if [ "$#" -lt "2" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+    var2=$4;
+fi
+
+while getopts n: option
+do
+case "${option}"
+in
+n) node_name=${OPTARG};;
+esac
+done
+
+if [ "$node_name" = "" ]; then
+"${g}Error, missing arguments:${y} -n | Node hostname | <string>
+${w}$USAGE"
+exit 1
+fi
+echo    "${g}---------------"
+echo	"Node hostname:${w}"
+echo	"$node_name"
+echo "${g}---------------"
+echo -e "${w}"
+ssh $node_name "mkdir -p /node_temp/"
+echo "${y}*******************"
+echo 'R-packages'
+echo "*******************${w}"
+
+#install R packages As root
+ssh $node_name "R -e install.packages'(\"BiocManager\", repos=\"https://cran.rstudio.com\")'"
+ssh $node_name "R -e 'BiocManager::install(\"RCurl\")'"
+ssh $node_name "R -e 'BiocManager::install(\"annotate\")'"
+ssh $node_name "R -e 'BiocManager::install(\"GenomicRanges\")'"
+ssh $node_name "R -e 'BiocManager::install(\"SummarizedExperiment\")'"
+ssh $node_name "R -e 'BiocManager::install(\"genefilter\")'"
+ssh $node_name "R -e 'BiocManager::install(\"DESeq2\")'"
+ssh $node_name "R -e 'BiocManager::install(\"Biobase\")'"
+ssh $node_name "R -e 'BiocManager::install(\"gplots\")'"
+ssh $node_name "R -e 'BiocManager::install(\"ape\")'"
+ssh $node_name "R -e 'BiocManager::install(\"qvalue\")'"
+ssh $node_name "R -e 'BiocManager::install(\"DEXSeq\")'"
+ssh $node_name "R -e 'BiocManager::install(\"fastcluster\")'"
+ssh $node_name "R -e 'BiocManager::install(\"Biobase\")'"
+ssh $node_name "R -e 'BiocManager::install(\"argparse\")'"
+ssh $node_name "R -e 'BiocManager::install(\"seqLogo\")'"
+ssh $node_name "R -e 'BiocManager::install(\"EBSeq\")'"
+ssh $node_name "R -e 'BiocManager::install(\"ggplot2\")'"
+ssh $node_name "R -e 'BiocManager::install(\"grid\")'"
+ssh $node_name "R -e 'BiocManager::install(\"dplyr\")'"
+ssh $node_name "R -e 'BiocManager::install(\"ggrepel\")'"
+ssh $node_name "rm -rf /node_temp/"
+
+./R-packages_ver -n $node_name 
+
+

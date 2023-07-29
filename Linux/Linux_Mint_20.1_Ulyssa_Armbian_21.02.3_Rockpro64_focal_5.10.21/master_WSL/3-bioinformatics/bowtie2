@@ -1,0 +1,48 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+#Bowtie2
+echo "${y}*******************"
+echo 'Bowtie2'
+echo "*******************${w}"
+bowtie_path=/home/$user_name/bowtie2-2.4.5
+bowtie_url=https://github.com/BenLangmead/bowtie2/archive/refs/tags/v2.4.5.tar.gz
+bowtie_zip=/home/$user_name/v2.4.5.tar.gz
+su -c "cd ~/ && wget $bowtie_url" $user_name
+su -c "cd ~/ && tar -zxf $bowtie_zip" $user_name
+su -c "cd $bowtie_path && make -j $threads" $user_name
+cd $bowtie_path && sudo make install -j $threads
+rm -rf $bowtie_path $bowtie_zip
+cd
+echo "${g}"
+echo    "-----------------------------"
+echo	"Currently installed version:"
+echo    "-----------------------------${w}"
+bowtie2 --version | grep bowtie | awk -F "/" '{print $5}'
+echo    "${g}-----------------------------"

@@ -1,0 +1,159 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+#second opt Set up only torque in the nodes
+
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3)
+p=$(tput setaf 5)  
+
+USAGE="$0 -n <nodename> -c <clustername> -u <username>"
+
+if [ "$#" -lt "4" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+    var2=$4;
+fi
+
+while getopts n:c:u: option
+do
+case "${option}"
+in
+n) node_name=${OPTARG};;
+c) cluster_name=${OPTARG};;
+u) user_name=${OPTARG};;
+esac
+done
+
+if [ "$node_name" = "" ]; then
+"Error, missing arguments
+Try: $USAGE"
+exit 1
+fi
+if [ "$cluster_name" = "" ]; then
+"Error, missing arguments
+Try: $USAGE"
+exit 1
+fi
+if [ "$user_name" = "" ]; then
+"Error, missing arguments
+Try: $USAGE"
+exit 1
+fi
+echo -e "${g}"
+echo	"-----------------------------------------------------------------------------------"
+echo    "------------------------------ Configuring SLURM ----------------------------------"
+echo    "-----------------------------------------------------------------------------------"
+echo "Node name to connect:${w}"
+echo "$node_name"
+echo "${g}Cluster name:${w}"
+echo "$cluster_name"
+echo "${g}User name:${w}"
+echo "$user_name"
+echo "${g}----------------------------------------------------------------------------------"
+echo "Installing required packages"
+echo "${w}"
+#ssh $node_name apt-fast update
+#ssh $node_name 'apt-fast install -y libmunge-dev libmunge2 munge'
+scp /etc/munge/munge.key root@$node_name:/etc/munge/
+ssh $node_name "chown munge:munge /etc/munge/munge.key"
+ssh $node_name "chmod 400 /etc/munge/munge.key"
+ssh $node_name "systemctl enable munge"
+ssh $node_name "systemctl restart munge"
+echo "${g}-----------------------------"
+echo "checking ssh access:${w}"
+ssh $node_name "ssh master exit"
+echo "${g}Testing MUNGE...${w}"
+ssh $node_name "munge -n | unmunge | grep STATUS"
+ssh $node_name "munge -n | ssh master unmunge | grep STATUS"
+echo "${g}-----------------------------"
+echo "${w}"
+
+#Install Slurm
+#ssh $node_name 'apt-fast install git gcc make ruby ruby-dev libpam0g-dev libmariadbclient-dev -y'
+#ssh $node_name 'gem install fpm'
+slurm_deb_arm_URL=https://master.dl.sourceforge.net/project/rock64-dependencies/Slurm/slurm-20.11.7_1.0_arm64.deb
+slurm_deb=/node_temp/slurm-20.11.7_1.0_arm64.deb
+threads=`ssh $node_name "nproc"`
+#ssh $node_name "mkdir -p /etc/slurm"
+#ssh $node_name 'rm -rf /node_temp/'
+#ssh $node_name 'mkdir -p /node_temp/'
+#ssh $node_name "chown -R $user_name:$user_name /node_temp/"
+#ssh $node_name "cd /node_temp && wget $slurm_deb_arm_URL"
+#ssh $node_name "aria2c --file-allocation=none --show-console-readout false -c -x 8 -s 8 -d "/node_temp/" $slurm_deb_arm_URL"
+
+#ssh $node_name "dpkg -i $slurm_deb"
+
+#update slurm.conf
+cat /etc/slurm/slurm.conf | grep "$node_name" &> /dev/null
+if [ $? == 0 ]; then
+echo "$node_name ${g}is already in the master's slurm.conf file${w}"
+else
+    scp node.slurm.conf.no-gpu root@$node_name:/root/
+    ssh $node_name "chmod +x node.slurm.conf.no-gpu"
+    scp /etc/slurm/slurm.conf root@$node_name:/etc/slurm/slurm.conf
+    ssh $node_name "/root/node.slurm.conf.no-gpu >> /etc/slurm/slurm.conf"
+    scp root@$node_name:/etc/slurm/slurm.conf /etc/slurm/slurm.conf
+rm /root/node.slurm.conf.no-gpu
+ fi
+
+#root@node
+scp cgroup.conf root@$node_name:/etc/slurm/cgroup.conf
+ssh $node_name "useradd slurm" 
+ssh $node_name "mkdir -p /var/spool/slurm/d"
+scp slurmd.service root@$node_name:/etc/systemd/system/
+#scp slurmd.service root@$node_name:/usr/sbin/slurmd
+
+ssh $node_name "systemctl enable slurmd"
+ssh $node_name "systemctl restart slurmd"
+
+#root@master
+service slurmctld restart
+
+scontrol update state=down reason=down nodename=$node_name
+scontrol update state=idle nodename=$node_name
+
+
+#Test Slurm
+echo "${g}"
+sinfo -N | grep NODELIST && sinfo -N | grep "$node_name"
+
+echo "${w}"
+
+ssh $node_name "systemctl restart slurmd"
+scontrol update state=down reason=down nodename=$node_name
+scontrol update state=idle nodename=$node_name
+sleep 3
+sinfo -N > /root/.sinfo
+sed "s|$cluster_name.com|$cluster_name.com\n|g"  /root/.sinfo | grep -c "$cluster_name.com" > /root/.n
+n=`cat /root/.n`
+rm -rf /root/.sinfo /root/.n
+
+echo "${w}"
+service slurmctld restart
+service slurmd restart
+echo "-----------------------------------------------------"
+echo "Testing a SLURM job, press${y} CTRL+C ${w}to ignore this test"
+echo "-----------------------------------------------------"
+sleep 3
+scontrol update state=down reason=down nodename=$node_name
+scp -r /etc/slurm/slurm.conf root@$node_name:/etc/slurm/
+sleep 15
+scontrol update state=down reason=down nodename=$node_name
+ssh $node_name "service slurmd restart"
+scontrol update state=idle nodename=$node_name
+#scontrol update state=down nodename=$node_name reason=offline 
+su -c "srun -w $node_name hostname" $user_name 
+
+echo "${g}"
+echo ""
+echo -e "setf 2" | tput -S
+echo	"----------------------------------------------------------------------------------"
+echo    "-------------------------- Slurm configured successfully -------------------------"
+echo    "----------------------------------------------------------------------------------"	
+
+

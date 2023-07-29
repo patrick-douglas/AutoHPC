@@ -1,0 +1,57 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+
+#Trinity
+echo "${y}*******************"
+echo 'Trinity'
+echo "*******************${w}"
+trinity_url=https://github.com/trinityrnaseq/trinityrnaseq/releases/download/Trinity-v2.15.1/trinityrnaseq-v2.15.1.FULL.tar.gz
+trinity_tar=/home/$user_name/trinityrnaseq-v2.15.1.FULL.tar.gz
+trinity_path=/home/$user_name/trinityrnaseq-v2.15.1
+
+#rm -rf /usr/local/bin/trinityrnaseq-*
+su -c "cd ~/ && wget $trinity_url" $user_name
+su -c "cd ~/ && tar -zxf $trinity_tar" $user_name
+su -c "cd $trinity_path && make -j $threads" $user_name
+sed -i '1c#!/usr/bin/env python3' $trinity_path/util/support_scripts/trinity_installer.py
+cd $trinity_path && sudo make install -j $threads
+rm -rf $trinity_path $trinity_tar*
+
+#mv /usr/local/bin/trinityrnaseq-* /usr/local/bin/trinityrnaseq-latest
+
+#	ssh $user_name@$node_name "echo 'export PATH=\"$trinity_path:\$PATH\"' >> /home/me/.bashrc"
+#	ssh root@$node_name "echo 'export PATH=\"$trinity_path:\$PATH\"' >> /root/.bashrc" 
+echo	""
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+/usr/local/bin/Trinity --version | grep 'Trinity-v'
+echo    "${g}----------------------------"

@@ -1,0 +1,51 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+
+#Trinity
+echo "${y}*******************"
+echo 'STAR'
+echo "*******************${w}"
+STAR_url=https://github.com/alexdobin/STAR/releases/download/2.7.10b/STAR_2.7.10b.zip
+STAR_tar=/home/$user_name/STAR_2.7.10b.zip
+STAR_path1=/home/$user_name/STAR_2.7.10b/
+STAR_path2=/home/$user_name/STAR_2.7.10b/Linux_x86_64/
+
+su -c "cd ~/ && wget $STAR_url" $user_name
+su -c "cd ~/ && unzip $STAR_tar" $user_name
+cd $STAR_path2 && cp STAR* /usr/bin/
+rm -rf $STAR_path1 $STAR_tar*
+
+echo	""
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+STAR --version 
+echo    "${g}----------------------------"
