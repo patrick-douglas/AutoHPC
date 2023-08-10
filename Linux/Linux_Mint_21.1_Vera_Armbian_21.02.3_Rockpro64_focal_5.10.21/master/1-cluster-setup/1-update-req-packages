@@ -120,21 +120,3 @@ sudo apt-get install python3-setuptools -y
 su -c 'pip install gffutils' $user_name
 su -c 'pip install numpy'  $user_name
 su -c 'pip install --upgrade pip' $user_name
-
-#Very optional for Patrick=============================================================================
-wget --directory-prefix=/root https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/microsoft-edge-stable_103.0.1264.44-1_amd64.deb
-dpkg -i /root/microsoft-edge-stable_103.0.1264.44-1_amd64.deb
-rm -rf /root/microsoft-edge-stable_103.0.1264.44-1_amd64.deb
-rm /etc/apt/sources.list.d/microsoft-edge.list
-apt-get update
-apt-get install -f -y
-wget --directory-prefix=/root https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-dpkg -i /root/teamviewer_amd64.deb
-apt-get install -f -y
-dpkg -i /root/teamviewer_amd64.deb
-rm -rf /root/teamviewer_amd64.deb
-rm /etc/apt/sources.list.d/teamviewer.list*
-rm -rf /etc/apt/sources.list.d/linuxuprising-*
-apt-get update
-
-#======================================================================================================
