@@ -1,6 +1,5 @@
-#!/bin/bash -x
+#!/bin/bash
 #Este script é executado atraves de um script primario
-exit 1
 w=$(tput sgr0) 
 r=$(tput setaf 1)
 g=$(tput setaf 2) 
