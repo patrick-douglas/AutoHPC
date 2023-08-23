@@ -32,16 +32,16 @@ threads=`nproc`
 echo "${y}*******************"
 echo 'salmon'
 echo "*******************${w}"
-salmon_url=https://github.com/COMBINE-lab/salmon/releases/download/v1.6.0/salmon-1.6.0_linux_x86_64.tar.gz
-salmon_tar=/home/$user_name/salmon-1.6.0_linux_x86_64.tar.gz
+salmon_url=https://github.com/COMBINE-lab/salmon/releases/download/v1.10.0/salmon-1.10.0_linux_x86_64.tar.gz
+salmon_tar=/home/$user_name/salmon-1.10.0_linux_x86_64.tar.gz
 su -c "cd ~/ && wget $salmon_url" $user_name
 tar -zxf $salmon_tar --directory /usr/local/bin
-chown -R $user_name:$user_name /usr/local/bin/salmon-1.6.0_linux_x86_64
+chown -R $user_name:$user_name /usr/local/bin/salmon-latest_linux_x86_64/bin/
 rm -rf $salmon_tar /usr/local/bin/salmon
-ln -s /usr/local/bin/salmon-1.6.0_linux_x86_64/bin/salmon /usr/local/bin/salmon
+ln -s /usr/local/bin/salmon-latest_linux_x86_64/bin/salmon /usr/local/bin/salmon
 echo "${g}"
 echo    "----------------------------"
 echo	"Currently installed version:"
 echo    "----------------------------${w}"
-/usr/local/bin/salmon-1.6.0_linux_x86_64/bin/salmon -v
+/usr/local/bin/salmon-latest_linux_x86_64/bin/salmon -v
 echo    "${g}----------------------------"
