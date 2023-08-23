@@ -120,3 +120,4 @@ sudo apt-get install python3-setuptools -y
 su -c 'pip install gffutils' $user_name
 su -c 'pip install numpy'  $user_name
 su -c 'pip install --upgrade pip' $user_name
+su -c 'pip install HTSeq' $user_name

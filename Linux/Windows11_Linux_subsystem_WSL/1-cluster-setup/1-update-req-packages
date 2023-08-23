@@ -124,4 +124,4 @@ su -c 'pip install numpy'  $user_name
 su -c 'pip install --upgrade pip' $user_name
 rm -rf /etc/apt/sources.list.d/linuxuprising-java.list*
 apt-get update
-
+su -c 'pip install HTSeq' $user_name
