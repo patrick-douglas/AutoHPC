@@ -28,17 +28,17 @@ exit 1
 fi
 threads=`nproc`
 
-#Trinity
+#NOTE: Only STAR 2.7.8a is compatible with DTU analysis
 echo "${y}*******************"
 echo 'STAR'
 echo "*******************${w}"
-STAR_url=https://github.com/alexdobin/STAR/releases/download/2.7.10b/STAR_2.7.10b.zip
-STAR_tar=/home/$user_name/STAR_2.7.10b.zip
-STAR_path1=/home/$user_name/STAR_2.7.10b/
-STAR_path2=/home/$user_name/STAR_2.7.10b/Linux_x86_64/
+STAR_url=https://github.com/alexdobin/STAR/archive/refs/tags/2.7.8a.tar.gz
+STAR_tar=/home/$user_name/2.7.8a.tar.gz
+STAR_path1=/home/$user_name/STAR-2.7.8a/
+STAR_path2=/home/$user_name/STAR-2.7.8a/bin/Linux_x86_64/
 
 su -c "cd ~/ && wget $STAR_url" $user_name
-su -c "cd ~/ && unzip $STAR_tar" $user_name
+su -c "cd ~/ && tar -zxf $STAR_tar" $user_name
 cd $STAR_path2 && cp STAR* /usr/bin/
 rm -rf $STAR_path1 $STAR_tar*
 
