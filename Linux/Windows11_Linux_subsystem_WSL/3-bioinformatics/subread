@@ -29,20 +29,20 @@ fi
 threads=`nproc`
 
 #SUBREAD
-subread_tar=/home/$user_name/subread-2.0.3-source.tar.gz
-subread_path=/home/$user_name/subread-2.0.3-source
-subread_url=https://megalink.dl.sourceforge.net/project/subread/subread-2.0.3/subread-2.0.3-source.tar.gz
+subread_tar=/home/$user_name/subread-2.0.6-Linux-x86_64.tar.gz
+subread_path=/home/$user_name/subread-2.0.6-Linux-x86_64
+subread_path_bin=subread-2.0.6-Linux-x86_64
+subread_url=https://gox.dl.sourceforge.net/project/subread/subread-2.0.6/subread-2.0.6-Linux-x86_64.tar.gz
 su -c "cd ~/ && wget $subread_url" $user_name
 su -c "cd ~/ && tar zxf $subread_tar" $user_name
-su -c "cd $subread_path/src && make -f Makefile.Linux" $user_name
-cp -R $subread_path -t /usr/local/bin/
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/exactSNP /usr/local/bin/exactSNP
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/featureCounts /usr/local/bin/featureCounts
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/subindel /usr/local/bin/subindel
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/subjunc /usr/local/bin/subjunc
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/sublong /usr/local/bin/sublong
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/subread-align /usr/local/bin/subread-align
-ln -fs /usr/local/bin/subread-2.0.3-source/bin/subread-buildindex /usr/local/bin/subread-buildindex
+cp -R $subread_path -t /usr/bin/
+ln -fs /usr/bin/$subread_path_bin/bin/exactSNP /usr/bin/exactSNP
+ln -fs /usr/bin/$subread_path_bin/bin/featureCounts /usr/bin/featureCounts
+ln -fs /usr/bin/$subread_path_bin/bin/subindel /usr/bin/subindel
+ln -fs /usr/bin/$subread_path_bin/bin/subjunc /usr/bin/subjunc
+ln -fs /usr/bin/$subread_path_bin/bin/sublong /usr/bin/sublong
+ln -fs /usr/bin/$subread_path_bin/bin/subread-align /usr/bin/subread-align
+ln -fs /usr/bin/$subread_path_bin/bin/subread-buildindex /usr/bin/subread-buildindex
 rm -rf $subread_tar $subread_path
 
 echo "${g}"

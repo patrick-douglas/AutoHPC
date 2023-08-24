@@ -89,11 +89,12 @@ echo -ne '#####################################   (96.90%)\r'
 R -e 'BiocManager::install("ggrepel")' >> .out.log 2>> .err.log
 echo -ne '######################################  (99.76%)\r'
 R -e 'BiocManager::install("BiocManager")' >> .out.log 2>> .err.log
-echo -ne '#######################################(100.00%)\r'
 R -e 'BiocManager::install("devtools")' >> .out.log 2>> .err.log
 echo -ne '#######################################(100.00%)\r'
-R -e "BiocManager::install('EnhancedVolcano')" >> .out.log 2>> .err.log
 R -e "BiocManager::install('tidyverse')" >> .out.log 2>> .err.log
+R -e "BiocManager::install('EnhancedVolcano')" >> .out.log 2>> .err.log
+echo -ne '#######################################(100.00%)\r'
+R -e "BiocManager::install('DEXSeq')" >> .out.log 2>> .err.log
 
 echo "${g}"
 echo    "************************************************"
@@ -104,7 +105,5 @@ echo    "************************************************"
 if [ ! -z "$output_log" ]; then
 rm -rf .out.log .err.log
 else 
-mv .out.log R-packages_out.log.txt
-mv .err.log R-packages_err.log.txt
+echo ''
 fi
-
