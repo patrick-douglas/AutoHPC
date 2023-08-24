@@ -31,5 +31,6 @@ echo -n "${g}dplyr:     		                ${w}" ; R --no-restore -e 'packageVers
 echo -n "${g}ggrepel:		                ${w}" ; R --no-restore -e 'packageVersion("ggrepel")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
 echo -n "${g}EnhancedVolcano:                        ${w}" ; R --no-restore -e 'packageVersion("EnhancedVolcano")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
 echo -n "${g}tidyverse:                              ${w}" ; R --no-restore -e 'packageVersion("tidyverse")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}DEXSeq:                                 ${w}" ; R --no-restore -e 'packageVersion("DEXSeq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
 echo "${g}*************************************************${w}"
 
