@@ -97,6 +97,7 @@ su -c '/usr/local/bin/pip3 install biopython' $user_name
 ./wine
 ./VIRTUS -u $user_name
 ./STAR -u $user_name
+./trimmomatic -u $user_name
 su -c "cd /home/$user_name/ && git clone https://github.com/patrick-douglas/Corset-tools.git" $user_name
 echo 'HPC Grid Runner Latest github Version'
 echo    "${g}---------------------------------------------"

@@ -28,6 +28,8 @@ paste <(echo "${g}VIRTUS      ${w}") <(cat /home/*/VIRTUS/bin/VIRTUS.SE.cwl | gr
 paste <(echo "${g}VIRTUS2     ${w}") <(cat /home/*/VIRTUS2/bin/VIRTUS.SE.cwl | grep 'doc: VIRTUS' | awk '{print $3}')
 paste <(echo "${g}Wine     ${w}") <(wine --version | awk -F "-" '{print $2}')
 paste <(echo "${g}STAR     ${w}") <(STAR --version )
+paste <(echo "${g}Trimmomatic ${w}") <(java -jar /home/*/Trimmomatic-0.39/trimmomatic-0.39.jar -version)
+
 #paste <(echo "${g}Subread     ${w}") <(echo $subreadv)
 echo "${y}**************************${w}" 
 ./R-packages_ver 

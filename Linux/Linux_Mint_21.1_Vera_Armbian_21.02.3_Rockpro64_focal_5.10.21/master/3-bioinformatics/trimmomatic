@@ -1,0 +1,47 @@
+#!/bin/bash
+#Este script é executado atraves de um script primario
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+y=$(tput setaf 3) 
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+
+if [ "$user_name" = "" ]; then
+"${g}Error, missing arguments:${y} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+threads=`nproc`
+
+#Trimmomatic
+echo "${y}*******************"
+echo 'Trimmomatic'
+echo "*******************${w}"
+#purge old version 
+rm -rf /home/$user_name/Trimmomatic*
+Trimmomatic_url=https://github.com/usadellab/Trimmomatic/files/5854859/Trimmomatic-0.39.zip
+Trimmomatic_tar=/home/$user_name/Trimmomatic-0.39.zip
+su -c "cd ~/ && wget $Trimmomatic_url" $user_name
+su -c "unzip $Trimmomatic_tar -d ~/" $user_name
+rm -rf $Trimmomatic_tar
+echo "${g}"
+echo    "----------------------------"
+echo	"Currently installed version:"
+echo    "----------------------------${w}"
+su -c "java -jar ~/Trimmomatic-0.39/trimmomatic-0.39.jar -version" $user_name
+echo    "${g}----------------------------"
