@@ -307,8 +307,8 @@ ssh $node_name "chattr +i /etc/hostname"
 echo -ne '                                                                          (100%)\r'
 echo -ne '\n'
 #disable lightdm
-ssh $node_name 'systemctl stop lightdm.service'
-ssh $node_name 'sudo apt purge lightdm -y'
+#ssh $node_name 'systemctl stop lightdm.service'
+#ssh $node_name 'sudo apt purge lightdm -y'
 
 
 echo "${g}"
