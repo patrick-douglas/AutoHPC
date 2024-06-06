@@ -37,8 +37,8 @@ echo -ne '########                                (22.62%)\r'
 R -e 'install.packages("proj4", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
 echo -ne '#########                               (25.48%)\r'
 R -e 'BiocManager::install("edgeR")' >> .out.log 2>> .err.log
-echo -ne '##########                              (28.33%)\r'
-R -e 'BiocManager::install("goseq")' >> .out.log 2>> .err.log
+#echo -ne '##########                              (28.33%)\r'
+#R -e 'BiocManager::install("goseq")' >> .out.log 2>> .err.log
 echo -ne '###########                             (31.19%)\r'
 R -e 'BiocManager::install("limma")' >> .out.log 2>> .err.log
 echo -ne '############                            (34.05%)\r'
