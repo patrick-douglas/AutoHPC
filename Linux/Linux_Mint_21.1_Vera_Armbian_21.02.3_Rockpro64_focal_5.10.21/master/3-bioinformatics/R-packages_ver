@@ -10,7 +10,7 @@ echo "${g}*************************************************"
 echo "${w}R $R_ver packages versions${g}"
 echo "*************************************************${g}"
 echo -n "${g}RCurl: 	                       	        ${w}" ; R --no-restore -e 'packageVersion("RCurl")' | grep packageVersion -A 1 | grep '[1]' | awk {'print $2'} | sed -r 's/^.{1}//' | sed 's/.$//'
-echo -n "${g}goseq:                             	${w}" ; R --no-restore -e 'packageVersion("goseq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+#echo -n "${g}goseq:                             	${w}" ; R --no-restore -e 'packageVersion("goseq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
 echo -n "${g}annotate:                          	${w}" ; R --no-restore -e 'packageVersion("annotate")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
 echo -n "${g}GenomicRanges:                        	${w}" ; R --no-restore -e 'packageVersion("GenomicRanges")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
 echo -n "${g}SummarizedExperiment:                 	${w}" ; R --no-restore -e 'packageVersion("SummarizedExperiment")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
