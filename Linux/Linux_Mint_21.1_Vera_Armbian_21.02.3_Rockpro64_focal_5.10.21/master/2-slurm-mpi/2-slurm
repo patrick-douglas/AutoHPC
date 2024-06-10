@@ -63,7 +63,7 @@ echo "${w}"
 rm -rf /storage /root/slurm*
 apt-fast update 
 apt-fast install git gcc make ruby ruby-dev libpam0g-dev -y
-apt-fast install -y libmariadbclient-dev libmariadb-dev
+apt-fast install -y libmariadb-dev #libmariadbclient-dev
 apt-fast install -y libmariadb-dev-compat libmariadb-dev
 gem install fpm
 
