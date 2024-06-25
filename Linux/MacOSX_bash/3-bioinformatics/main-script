@@ -1,90 +1,69 @@
 #!/bin/bash
+
 w=$(tput sgr0) 
 r=$(tput setaf 1)
 g=$(tput setaf 2) 
 y=$(tput setaf 3)
- 
-USAGE="USO: $0 -u <nome_do_usuario>"
-if [ "$#" -lt "1" ] 
-then 
+
+USAGE="USAGE: $0"
+if [ "$#" -ne "0" ]; then 
     echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
+    exit 1
 fi
 
-while getopts u: option
-do
-case "${option}"
-in
-u) user_name=$OPTARG;;
-esac
-done
-
-if [ "$user_name" = "" ]; then
-"${g}Erro, argumentos faltando:${y} -u | Nome do usuário | <string>
-${w}$USAGE"
-exit 1
-fi
-
+user_name=$(whoami)
 threads=$(sysctl -n hw.ncpu)
+
 echo "${y}$USAGE ${g}"
-echo	"----------------------------------------------------------------------------------"
-echo    "-------------------- Instalando Trinity e pacotes necessários -------------------"
-echo	"----------------------------------------------------------------------------------"
-echo "Nome do usuário:${w}"
+echo "----------------------------------------------------------------------------------"
+echo "-------------------- Installing Trinity and necessary packages --------------------"
+echo "----------------------------------------------------------------------------------"
+echo "Username:${w}"
 echo "${w}"
 echo "$user_name"
 
 echo "${g}----------------------------------------------------------------------------------"
 echo "${w}"
 
-# Atualizando e instalando o Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# Install Homebrew if not installed
+if ! command -v brew &> /dev/null; then
+    echo "Homebrew not found. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Installing necessary packages
+echo "Installing necessary packages..."
 brew update
-./java
-# Instalando pacotes necessários
-brew install gcc
-brew install ncurses
-brew install zlib
-brew install xz
-brew install cmake
-brew install perl
-brew install python@3.9
-brew install git
-brew install libtbb
-brew install openssl
+brew install gcc ncurses zlib xz cmake perl python@3.9 git libtbb openssl
+pip3 install --upgrade setuptools numpy biopython
+brew install bcftools pcre r samtools jellyfish bowtie2
 
-# Instalando pacotes Python
-pip3 install --upgrade setuptools
-pip3 install numpy
-pip3 install biopython
+# Clone Corset-tools repository
+echo "Cloning Corset-tools repository..."
+cd ~
+rm -rf Corset-tools
+git clone https://github.com/patrick-douglas/Corset-tools.git
 
-# Instalando outros pacotes
-brew install bcftools
-brew install pcre
-brew install r
-brew install samtools
-brew install jellyfish
-brew install salmon
-brew install bowtie2
-./ncbi-blast+
-#brew install trinity-rna-seq
+# Execute additional scripts
+echo "Executing additional scripts..."
+cd Corset-tools
+#./R-packages
+#./java
+#./ncbi-blast+
+#./trinity-rna-seq
+#./sft-ver
 
-# Clonando o repositório Corset-tools
-su -c "cd /Users/$user_name/ && git clone https://github.com/patrick-douglas/Corset-tools.git" $user_name
-
-echo 'Versão mais recente do HPC Grid Runner do GitHub'
-echo    "${g}---------------------------------------------"
-echo	" "
-echo	" "
-echo "${y}----------------------------------------------------------------------------------"
-echo    "--------------------- Concluímos a configuração principal ----------------------"
-echo    "----------------------------------------------------------------------------------"
-echo "${y}----------------------------------------------------------------------------------"
-echo	"Suporte por e-mail para patrick@ufpa.br"
-echo    'Obrigado :-D'
-echo	" "
+echo 'Latest version of HPC Grid Runner from GitHub'
+echo "---------------------------------------------"
+echo " "
+echo " "
+echo "----------------------------------------------------------------------------------"
+echo "--------------------- Main configuration completed -------------------------------"
+echo "----------------------------------------------------------------------------------"
+echo "----------------------------------------------------------------------------------"
+echo "Support via email to patrick@ufpa.br"
+echo 'Thank you :-D'
+echo " "
 echo "
                  ___        ______    __     __
                 |   |      |	  \  |  \   |  | 
@@ -94,6 +73,5 @@ echo "
                 |        | |   D   ) |  | \    |  
                 |________| |______/  |__|  \___|
 
-     Laboratório de Biologia Molecular e Neuroecologia - IFPA 
+     Molecular Biology and Neuroecology Laboratory - IFPA 
 "
-./sft-ver

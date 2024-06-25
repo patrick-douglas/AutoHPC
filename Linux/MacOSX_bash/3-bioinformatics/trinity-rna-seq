@@ -1,57 +1,80 @@
 #!/bin/bash
 
-# Verifica se o Homebrew está instalado
+# Check if Homebrew is installed
 if ! command -v brew &> /dev/null; then
-	echo "Homebrew não encontrado. Instalando o Homebrew..."
+	echo "Homebrew not found. Installing Homebrew..."
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# Instalação de dependências
-echo "Instalando dependências..."
+# Installing dependencies
+echo "Installing dependencies..."
 brew install bowtie
 brew install samtools
+brew install gcc
 
-# Removendo arquivos de download anteriores
-echo "Removendo arquivos de download anteriores..."
+# Create symlinks for compilers
+sudo ln -fs /opt/homebrew/Cellar/gcc/14.1.0_1/bin/g++-14 /usr/local/bin/g++-14
+sudo ln -fs /opt/homebrew/Cellar/gcc/14.1.0_1/bin/gcc-14 /usr/local/bin/gcc-14
+
+# Removing previous download files
+echo "Removing previous download files..."
 rm -rf trinityrnaseq trinityrnaseq-v* salmon boost
 
-# Clone do repositório do Trinity
-echo "Clonando repositório Trinity..."
-git clone https://github.com/trinityrnaseq/trinityrnaseq.git
+# Create a hidden temporary download folder
+TMP_DOWNLOAD_FOLDER=~/.tmp_download
+mkdir -p $TMP_DOWNLOAD_FOLDER
 
-# Baixando Trinity pré-compilado (MacOS)
-echo "Baixando Trinity pré-compilado..."
-cd trinityrnaseq
-curl -O https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.12.0/trinityrnaseq-v2.12.0.OSX_x86_64.tar.gz
-tar -xzvf trinityrnaseq-v2.12.0.OSX_x86_64.tar.gz
-export TRINITY_HOME=$(pwd)/trinityrnaseq-v2.12.0
-
-# Instalação do Boost
-echo "Instalando Boost..."
-cd ..
+# Install Boost in the temporary download folder
+echo "Installing Boost..."
+cd $TMP_DOWNLOAD_FOLDER
 git clone --recursive https://github.com/boostorg/boost.git
 cd boost
 ./bootstrap.sh --prefix=$TRINITY_HOME/boost
 ./b2 install
 
-# Obtendo o número de núcleos da CPU
-echo "Obtendo o número de núcleos da CPU..."
+# Get the number of CPU cores
 NUM_THREADS=$(sysctl -n hw.ncpu)
 
-# Instalação do Salmon
-echo "Instalando Salmon..."
-cd ..
+# Install Salmon in the temporary download folder
+echo "Installing Salmon..."
 git clone https://github.com/COMBINE-lab/salmon.git
 cd salmon
 mkdir build && cd build
-cmake -DBOOST_ROOT=$TRINITY_HOME/boost -DCMAKE_INSTALL_PREFIX=$TRINITY_HOME/salmon ..
+cmake -DBOOST_ROOT=$TMP_DOWNLOAD_FOLDER/boost -DCMAKE_INSTALL_PREFIX=$TMP_DOWNLOAD_FOLDER/salmon ..
 make -j$NUM_THREADS
 make install
+cd ../..
+rm -rf salmon
+rm -rf boost
 
-# Adicionando Trinity e Salmon ao PATH
-echo "Adicionando Trinity e Salmon ao PATH..."
-export SALMON_HOME=$(pwd)/salmon
-echo 'export PATH=$PATH:$TRINITY_HOME:$SALMON_HOME' >> ~/.bash_profile
-source ~/.bash_profile
+# Download and extract the latest release of Trinity
+echo "Downloading and extracting the latest release of Trinity..."
+cd ~/
+curl -OL https://github.com/trinityrnaseq/trinityrnaseq/releases/latest/download/trinityrnaseq-latest.tar.gz
+tar -xzvf trinityrnaseq-latest.tar.gz
+rm trinityrnaseq-latest.tar.gz
 
-echo "Trinity e Salmon instalados com sucesso!"
+# Compile Trinity
+echo "Compiling Trinity..."
+cd trinityrnaseq*
+make -j $NUM_THREADS
+
+# Get the path of the current directory's build folder
+TRINITY_HOME=$(pwd)
+
+# Add Trinity's build folder path to .bashrc if it's not already added
+if ! grep -q "export TRINITY_HOME=$TRINITY_HOME" ~/.bashrc || ! grep -q 'export PATH=$PATH:$TRINITY_HOME' ~/.bashrc; then
+	echo "export TRINITY_HOME=$TRINITY_HOME" >> ~/.bashrc
+	echo 'export PATH=$PATH:$TRINITY_HOME' >> ~/.bashrc
+	source ~/.bashrc
+fi
+
+echo "Trinity compiled successfully!"
+
+# Remove temporary download folder and installation directories of Boost and Salmon
+echo "Cleaning up temporary files..."
+rm -rf $TMP_DOWNLOAD_FOLDER
+rm -rf $TRINITY_HOME/boost
+rm -rf $TRINITY_HOME/salmon
+
+echo "Cleanup completed!"

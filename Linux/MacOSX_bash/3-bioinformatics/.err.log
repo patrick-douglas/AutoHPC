@@ -1,0 +1,194 @@
+==> Updating Homebrew...
+Updated 1 tap (homebrew/core).
+==> New Formulae
+testscript
+==> Outdated Formulae
+docker-compose
+
+You have 1 outdated formula installed.
+You can upgrade it with brew upgrade
+or list it with brew outdated.
+Installing package into ‘/opt/homebrew/lib/R/4.4/site-library’
+(as ‘lib’ is unspecified)
+trying URL 'http://cran.us.r-project.org/src/contrib/BiocManager_1.30.23.tar.gz'
+Content type 'application/x-gzip' length 589753 bytes (575 KB)
+==================================================
+downloaded 575 KB
+
+ERROR: failed to lock directory ‘/opt/homebrew/lib/R/4.4/site-library’ for modifying
+Try removing ‘/opt/homebrew/lib/R/4.4/site-library/00LOCK-BiocManager’
+
+The downloaded source packages are in
+	‘/private/var/folders/k1/gwp2pz4d5vg_qkyw3wmyp24r0000gn/T/RtmpekjnVY/downloaded_packages’
+Warning message:
+In install.packages("BiocManager", repos = "http://cran.us.r-project.org") :
+  installation of package ‘BiocManager’ had non-zero exit status
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Installing package(s) 'ggalt'
+also installing the dependency ‘proj4’
+
+trying URL 'https://cloud.r-project.org/src/contrib/proj4_1.0-14.tar.gz'
+Content type 'application/x-gzip' length 43038 bytes (42 KB)
+==================================================
+downloaded 42 KB
+
+trying URL 'https://cloud.r-project.org/src/contrib/ggalt_0.4.0.tar.gz'
+Content type 'application/x-gzip' length 2155519 bytes (2.1 MB)
+==================================================
+downloaded 2.1 MB
+
+* installing *source* package ‘proj4’ ...
+** package ‘proj4’ successfully unpacked and MD5 sums checked
+** using staged installation
+./configure: line 2183: pkg-config: command not found
+./configure: line 3070: pkg-config: command not found
+configure: error: Cannot find working proj.h headers and library.
+*** You may need to install libproj-dev or similar! ***
+
+ERROR: configuration failed for package ‘proj4’
+* removing ‘/opt/homebrew/lib/R/4.4/site-library/proj4’
+ERROR: dependency ‘proj4’ is not available for package ‘ggalt’
+* removing ‘/opt/homebrew/lib/R/4.4/site-library/ggalt’
+
+The downloaded source packages are in
+	‘/private/var/folders/k1/gwp2pz4d5vg_qkyw3wmyp24r0000gn/T/RtmpFfHHJP/downloaded_packages’
+Warning messages:
+1: In install.packages(...) :
+  installation of package ‘proj4’ had non-zero exit status
+2: In install.packages(...) :
+  installation of package ‘ggalt’ had non-zero exit status
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Installing package(s) 'proj4'
+trying URL 'https://cloud.r-project.org/src/contrib/proj4_1.0-14.tar.gz'
+Content type 'application/x-gzip' length 43038 bytes (42 KB)
+==================================================
+downloaded 42 KB
+
+* installing *source* package ‘proj4’ ...
+** package ‘proj4’ successfully unpacked and MD5 sums checked
+** using staged installation
+./configure: line 2183: pkg-config: command not found
+./configure: line 3070: pkg-config: command not found
+configure: error: Cannot find working proj.h headers and library.
+*** You may need to install libproj-dev or similar! ***
+
+ERROR: configuration failed for package ‘proj4’
+* removing ‘/opt/homebrew/lib/R/4.4/site-library/proj4’
+
+The downloaded source packages are in
+	‘/private/var/folders/k1/gwp2pz4d5vg_qkyw3wmyp24r0000gn/T/RtmpTjeJxu/downloaded_packages’
+Warning message:
+In install.packages(...) :
+  installation of package ‘proj4’ had non-zero exit status
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'edgeR' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'goseq' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'limma' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'Glimma' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'RCurl' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'annotate' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'GenomicRanges' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'SummarizedExperiment' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'genefilter' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'geneplotter' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'DESeq2' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'ctc' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'Biobase' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'gplots' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'ape' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'qvalue' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'fastcluster' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'argparse' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'phytools' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'seqLogo' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'EBSeq' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'ggplot2' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'grid' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'dplyr' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'ggrepel' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'tidyverse' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'EnhancedVolcano' 
+Bioconductor version 3.19 (BiocManager 1.30.23), R 4.4.1 (2024-06-14)
+Warning message:
+package(s) not installed when version(s) same as or greater than current; use
+  `force = TRUE` to re-install: 'DEXSeq' 

@@ -1,123 +1,134 @@
-#!/bin/bash
-# This script is executed through a primary script
-w=$(tput sgr0) 
-r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
-threads=$(sysctl -n hw.ncpu)
-rm -rf .out.log .err.log
-output_log=1
-while getopts o name
-do
-case $name in
-o) output_log=$OPTARG;;
-esac
-done
+		#!/bin/bash
+		# This script is executed through a primary script
+		w=$(tput sgr0)
+		r=$(tput setaf 1)
+		g=$(tput setaf 2)
+		y=$(tput setaf 3)
+		threads=$(sysctl -n hw.ncpu)
+		rm -rf .out.log .err.log
+		output_log=1
+		while getopts o name; do
+			case $name in
+				o) output_log=$OPTARG;;
+			esac
+		done
 
-# Function to check if R is installed and accessible
-check_R_installation() {
-	R --version > /dev/null 2>&1
-	if [ $? -ne 0 ]; then
-		echo "${r}ERROR: R is not installed or not accessible.${w}"
-		exit 1
-	fi
-}
+		# Function to check if R is installed and accessible
+		check_R_installation() {
+			R --version > /dev/null 2>&1
+			if [ $? -ne 0 ]; then
+				echo "${r}ERROR: R is not installed or not accessible.${w}"
+				exit 1
+			fi
+		}
 
-# Install required libs
-echo "${g}************************************************"
-echo "  ${w}Installing required libraries and R packages${g}"
-echo "************************************************${w}"
-echo ''
-echo "NOTE: Use the parameter -o to keep installation logs"
-echo -ne '###                                      (8.33%)\r'
-brew update > .out.log 2> .err.log
-brew install gcc gfortran libxml2 libpng libtiff fftw gsl libgit2 >> .out.log 2>> .err.log
-echo -ne '######                                  (14.05%)\r'
-brew install cairo pango harfbuzz freetype jpeg >> .out.log 2>> .err.log
-echo -ne '#######                                 (16.90%) \r'
-brew install openssl >> .out.log 2>> .err.log
+		# Function to check if a package is installed
+		check_package() {
+			brew list "$1" > /dev/null 2>&1
+			return $?
+		}
 
-# Check if R is installed
-check_R_installation
+		# Install required libs
+		echo "${g}****************************************************"
+		echo "    ${w}Installing required libraries and R packages${g}"
+		echo "****************************************************${w}"
+		echo "NOTE: Use the parameter -o to keep installation logs"
 
-# R update and package installations
-echo -ne '#####                                   (11.19%)\r'
-R -e 'install.packages("BiocManager", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '######                                  (14.05%)\r'
-R -e 'update.packages(ask = FALSE, repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '#######                                 (16.90%) \r'
-R -e 'install.packages("ggalt", dependencies=TRUE, repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '########                                (22.62%)\r'
-R -e 'install.packages("proj4", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '#########                               (25.48%)\r'
-R -e 'BiocManager::install("edgeR")' >> .out.log 2>> .err.log
-echo -ne '##########                              (28.33%)\r'
-R -e 'BiocManager::install("goseq")' >> .out.log 2>> .err.log
-echo -ne '###########                             (31.19%)\r'
-R -e 'BiocManager::install("limma")' >> .out.log 2>> .err.log
-echo -ne '############                            (34.05%)\r'
-R -e 'BiocManager::install("Glimma")' >> .out.log 2>> .err.log
-echo -ne '#############                           (36.90%)\r'
-R -e 'BiocManager::install("RCurl")' >> .out.log 2>> .err.log
-echo -ne '##############                          (39.76%)\r'
-R -e 'BiocManager::install("annotate")' >> .out.log 2>> .err.log
-echo -ne '###############                         (42.62%)\r'
-R -e 'BiocManager::install("GenomicRanges")' >> .out.log 2>> .err.log
-echo -ne '################                        (45.48%)\r'
-R -e 'BiocManager::install("SummarizedExperiment")' >> .out.log 2>> .err.log
-echo -ne '#################                       (48.33%)\r'
-R -e 'BiocManager::install("genefilter")' >> .out.log 2>> .err.log
-echo -ne '##################                      (51.19%)\r'
-R -e 'BiocManager::install("geneplotter")' >> .out.log 2>> .err.log
-echo -ne '###################                     (54.05%)\r'
-R -e 'BiocManager::install("DESeq2")' >> .out.log 2>> .err.log
-echo -ne '####################                    (56.90%)\r'
-R -e 'BiocManager::install("ctc")' >> .out.log 2>> .err.log
-echo -ne '#####################                   (59.76%)\r'
-R -e 'BiocManager::install("Biobase")' >> .out.log 2>> .err.log
-echo -ne '######################                  (62.62%)\r'
-R -e 'BiocManager::install("gplots")' >> .out.log 2>> .err.log
-echo -ne '#######################                 (65.45%)\r'
-R -e 'BiocManager::install("ape")' >> .out.log 2>> .err.log
-echo -ne '########################                (68.33%)\r'
-R -e 'BiocManager::install("qvalue")' >> .out.log 2>> .err.log
-echo -ne '#########################               (71.19%)\r'
-R -e 'BiocManager::install("fastcluster")' >> .out.log 2>> .err.log
-echo -ne '##########################              (74.05%)\r'
-R -e 'BiocManager::install("Biobase")' >> .out.log 2>> .err.log
-echo -ne '###########################             (76.90%)\r'
-R -e 'BiocManager::install("argparse")' >> .out.log 2>> .err.log
-echo -ne '############################            (79.76%)\r'
-R -e 'BiocManager::install("phytools")' >> .out.log 2>> .err.log
-echo -ne '#############################           (82.62%)\r'
-R -e 'BiocManager::install("seqLogo")' >> .out.log 2>> .err.log
-echo -ne '################################        (85.48%)\r'
-R -e 'BiocManager::install("EBSeq")' >> .out.log 2>> .err.log
-echo -ne '#################################       (88.33%)\r'
-R -e 'BiocManager::install("ggplot2")' >> .out.log 2>> .err.log
-echo -ne '##################################      (91.19%)\r'
-R -e 'BiocManager::install("grid")' >> .out.log 2>> .err.log
-echo -ne '###################################     (94.05%)\r'
-R -e 'BiocManager::install("dplyr")' >> .out.log 2>> .err.log
-echo -ne '#####################################   (96.90%)\r'
-R -e 'BiocManager::install("ggrepel")' >> .out.log 2>> .err.log
-echo -ne '######################################  (99.76%)\r'
-R -e 'BiocManager::install("BiocManager")' >> .out.log 2>> .err.log
-R -e 'BiocManager::install("devtools")' >> .out.log 2>> .err.log
-echo -ne '#######################################(100.00%)\r'
-R -e "BiocManager::install('tidyverse')" >> .out.log 2>> .err.log
-R -e "BiocManager::install('EnhancedVolcano')" >> .out.log 2>> .err.log
-echo -ne '#######################################(100.00%)\r'
-R -e "BiocManager::install('DEXSeq')" >> .out.log 2>> .err.log
+		# Total number of steps
+		total_steps=32
 
-echo "${g}"
-echo    "************************************************"
-echo	"${w}Currently installed version:${g}"
-echo    "************************************************"
-./R-packages_ver
+		# Step counter
+		current_step=0
 
-if [ ! -z "$output_log" ]; then
-rm -rf .out.log .err.log
-else 
-echo ''
-fi
+		# Failed packages list
+		failed_packages=()
+
+		# Installed R packages list
+		installed_r_packages=()
+
+		# Function to update progress
+		update_progress() {
+			current_step=$((current_step + 1))
+			progress=$((current_step * 100 / total_steps))
+			if [ $progress -gt 100 ]; then
+				progress=100
+			fi
+			printf '\r%s [%d%%]' "${g}Progress:" "$progress"
+		}
+
+		# Step 1: Brew Update
+		echo -ne "${g}Brew Update"; update_progress
+		brew update > .out.log 2> .err.log
+
+		# Step 2: Install required libraries
+		echo -ne "${g} Installing required libraries"; update_progress
+		check_package gcc || brew install gcc gfortran libxml2 libpng libtiff fftw gsl libgit2 >> .out.log 2>> .err.log
+		check_package cairo || brew install cairo >> .out.log 2>> .err.log
+		check_package pango || brew install pango >> .out.log 2>> .err.log
+		check_package harfbuzz || brew install harfbuzz >> .out.log 2>> .err.log
+		check_package freetype || brew install freetype >> .out.log 2>> .err.log
+		check_package jpeg || brew install jpeg >> .out.log 2>> .err.log
+		check_package openssl || brew install openssl >> .out.log 2>> .err.log
+
+		# Step 3: Check if R is installed
+		echo -ne "${g} Checking R installation"; update_progress
+		check_R_installation
+
+		# Step 4: R update and package installations
+		echo -ne "${g}  Updating R and installing packages"; update_progress
+		check_package BiocManager || R -e 'install.packages("BiocManager", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
+		R -e 'update.packages(ask = FALSE, repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
+
+		# Array of R packages to install
+		packages=("ggalt" "proj4" "edgeR" "goseq" "limma" "Glimma" "RCurl" "annotate" "GenomicRanges" "SummarizedExperiment" "genefilter" "geneplotter" "DESeq2" "ctc" "Biobase" "gplots" "ape" "qvalue" "fastcluster" "argparse" "phytools" "seqLogo" "EBSeq" "ggplot2" "grid" "dplyr" "ggrepel" "tidyverse" "EnhancedVolcano" "DEXSeq")
+
+		# Loop through R packages and install
+		for pkg in "${packages[@]}"; do
+			echo -n "${g} Installing R package:${w} $pkg         "; update_progress
+			if ! check_package "$pkg"; then
+				R -e "BiocManager::install(\"$pkg\")" >> .out.log 2>> .err.log || failed_packages+=("$pkg")
+			else
+				installed_r_packages+=("$pkg")
+			fi
+		done
+
+		# Print failed packages
+		if [ "${#failed_packages[@]}" -gt 0 ]; then
+			echo ""
+			echo "${r}Failed to install packages:${w}"
+			for pkg in "${failed_packages[@]}"; do
+				echo "$pkg"
+			done
+		fi
+
+		# Print newline at the end
+		echo ""
+
+		# Displaying installed R packages and their versions
+R_ver=`R --version | grep version | grep R | awk '{print $3}'`
+echo "${g}****************************************************"
+echo "${w}R $R_ver packages versions${g}"
+echo "****************************************************${g}"
+echo -n "${g}RCurl: 	                       	        ${w}" ; R --no-restore -e 'packageVersion("RCurl")' | grep packageVersion -A 1 | grep '[1]' | awk {'print $2'} | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}annotate:                          	${w}" ; R --no-restore -e 'packageVersion("annotate")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}GenomicRanges:                        	${w}" ; R --no-restore -e 'packageVersion("GenomicRanges")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}SummarizedExperiment:                 	${w}" ; R --no-restore -e 'packageVersion("SummarizedExperiment")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}genefilter:	                       	${w}" ; R --no-restore -e 'packageVersion("genefilter")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}DESeq2:	                  	        ${w}" ; R --no-restore -e 'packageVersion("DESeq2")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}gplots:                           	${w}" ; R --no-restore -e 'packageVersion("gplots")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}qvalue:                         	${w}" ; R --no-restore -e 'packageVersion("ape")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}qvalue:        		                ${w}" ; R --no-restore -e 'packageVersion("qvalue")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}fastcluster:		                ${w}" ; R --no-restore -e 'packageVersion("fastcluster")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}Biobase:	                        ${w}" ; R --no-restore -e 'packageVersion("Biobase")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}argparse:                               ${w}" ; R --no-restore -e 'packageVersion("argparse")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}seqLogo:		                ${w}" ; R --no-restore -e 'packageVersion("seqLogo")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}EBSeq:     		                ${w}" ; R --no-restore -e 'packageVersion("EBSeq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}ggplot2:		                ${w}" ; R --no-restore -e 'packageVersion("ggplot2")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}grid:      		                ${w}" ; R --no-restore -e 'packageVersion("grid")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}dplyr:     		                ${w}" ; R --no-restore -e 'packageVersion("dplyr")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}ggrepel:		                ${w}" ; R --no-restore -e 'packageVersion("ggrepel")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}EnhancedVolcano:                        ${w}" ; R --no-restore -e 'packageVersion("EnhancedVolcano")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}tidyverse:                              ${w}" ; R --no-restore -e 'packageVersion("tidyverse")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo -n "${g}DEXSeq:                                 ${w}" ; R --no-restore -e 'packageVersion("DEXSeq")' | grep packageVersion -A 1 | awk {'print $2'} | sed -n '2p' | sed -r 's/^.{1}//' | sed 's/.$//'
+echo "${g}*************************************************${w}"		
+echo ""  # Print newline at the end
