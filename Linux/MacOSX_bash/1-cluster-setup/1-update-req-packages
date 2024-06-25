@@ -1,0 +1,127 @@
+#!/bin/bash
+#color defaults 
+w=$(tput sgr0) 
+r=$(tput setaf 1)
+g=$(tput setaf 2) 
+o=$(tput setaf 3) 
+p=$(tput setaf 5)
+
+USAGE="USAGE: $0 -u <username>"
+if [ "$#" -lt "1" ] 
+then 
+    echo -e $USAGE;
+    exit 1    
+else 
+    var1=$2;
+fi
+
+while getopts u: option
+do
+case "${option}"
+in
+u) user_name=$OPTARG;;
+esac
+done
+if [ "$user_name" = "" ]; then
+echo "${g}Error, missing arguments:${o} -u | User name | <string>
+${w}$USAGE"
+exit 1
+fi
+
+# Check if Homebrew is installed
+if ! command -v brew &> /dev/null
+then
+    echo "${r}Homebrew is not installed. Please install Homebrew first.${w}"
+    exit 1
+fi
+
+# Install wget if not installed
+if ! command -v wget &> /dev/null
+then
+    echo "${g}Installing wget via Homebrew...${w}"
+    brew install wget
+fi
+
+echo "${g}"  # set fg g
+echo "=================================${w}"
+echo "Testing your network connection${g}"
+echo "================================="
+#function of slash spin
+spinner()
+{
+    local pid=$1
+    local delay=0.75
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+( wget -q --tries=10 --timeout=20 --spider http://google.com ) &
+echo -n "Please wait... "
+spinner $!
+echo "DONE!${w}"
+
+if [[ $? -eq 0 ]]; then
+    echo ""
+    echo "Connection OK"
+    echo "${g}"
+else
+    echo "
+Ouch!!!
+--------------------------------------------------------------------------------------------------------
+You are OFFLINE, your computer needs to be connected to the Internet to install updates and some packages.
+If you continue without an INTERNET connection the installation will not work.
+--------------------------------------------------------------------------------------------------------
+"
+    function pause(){
+        read -p "$*"
+    }
+    echo -e "setf 4" | tput -S
+    pause 'Connect to the Internet and Press [Enter] key to continue or [Ctrl+C] to exit.'
+fi
+
+
+# Update Homebrew and install required packages
+brew update
+brew install expect curl python isc-dhcp
+
+
+echo "installing other packages:${w}"
+brew install bind ntp gcc make vim git
+
+echo ""
+brew install openssh npm
+
+pip3 install --upgrade pip setuptools
+pip3 install gffutils numpy HTSeq
+
+echo "${g}Installation and setup complete.${w}"
+
+# Check if GNU Make (gmake) is installed
+if ! command -v make &> /dev/null
+then
+    echo "${g}GNU 'make' is not installed.${w}"
+    echo "${o}Installing GNU 'make' via Homebrew...${w}"
+    brew install make
+
+    # Check if the gnubin directory exists and add it to PATH if it does
+    if [ -d "/opt/homebrew/opt/make/libexec/gnubin" ]; then
+        echo "${o}Adding 'gnubin' directory to PATH...${w}"
+        export PATH="/opt/homebrew/opt/make/libexec/gnubin:$PATH"
+
+        # Add the command to update PATH to bashrc
+        echo 'export PATH="/opt/homebrew/opt/make/libexec/gnubin:$PATH"' >> ~/.bashrc
+
+        # Source bashrc to apply changes immediately
+        source ~/.bashrc
+    else
+        echo "${r}'gnubin' directory not found.${w}"
+        echo "${r}Please add '/opt/homebrew/opt/make/libexec/gnubin' to your PATH manually.${w}"
+    fi
+fi

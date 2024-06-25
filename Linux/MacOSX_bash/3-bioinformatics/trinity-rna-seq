@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Verifica se o Homebrew está instalado
+if ! command -v brew &> /dev/null; then
+	echo "Homebrew não encontrado. Instalando o Homebrew..."
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Instalação de dependências
+echo "Instalando dependências..."
+brew install bowtie
+brew install samtools
+
+# Removendo arquivos de download anteriores
+echo "Removendo arquivos de download anteriores..."
+rm -rf trinityrnaseq trinityrnaseq-v* salmon boost
+
+# Clone do repositório do Trinity
+echo "Clonando repositório Trinity..."
+git clone https://github.com/trinityrnaseq/trinityrnaseq.git
+
+# Baixando Trinity pré-compilado (MacOS)
+echo "Baixando Trinity pré-compilado..."
+cd trinityrnaseq
+curl -O https://github.com/trinityrnaseq/trinityrnaseq/releases/download/v2.12.0/trinityrnaseq-v2.12.0.OSX_x86_64.tar.gz
+tar -xzvf trinityrnaseq-v2.12.0.OSX_x86_64.tar.gz
+export TRINITY_HOME=$(pwd)/trinityrnaseq-v2.12.0
+
+# Instalação do Boost
+echo "Instalando Boost..."
+cd ..
+git clone --recursive https://github.com/boostorg/boost.git
+cd boost
+./bootstrap.sh --prefix=$TRINITY_HOME/boost
+./b2 install
+
+# Obtendo o número de núcleos da CPU
+echo "Obtendo o número de núcleos da CPU..."
+NUM_THREADS=$(sysctl -n hw.ncpu)
+
+# Instalação do Salmon
+echo "Instalando Salmon..."
+cd ..
+git clone https://github.com/COMBINE-lab/salmon.git
+cd salmon
+mkdir build && cd build
+cmake -DBOOST_ROOT=$TRINITY_HOME/boost -DCMAKE_INSTALL_PREFIX=$TRINITY_HOME/salmon ..
+make -j$NUM_THREADS
+make install
+
+# Adicionando Trinity e Salmon ao PATH
+echo "Adicionando Trinity e Salmon ao PATH..."
+export SALMON_HOME=$(pwd)/salmon
+echo 'export PATH=$PATH:$TRINITY_HOME:$SALMON_HOME' >> ~/.bash_profile
+source ~/.bash_profile
+
+echo "Trinity e Salmon instalados com sucesso!"

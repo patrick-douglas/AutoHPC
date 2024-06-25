@@ -1,0 +1,46 @@
+#!/bin/bash
+
+w=$(tput sgr0)
+r=$(tput setaf 1)
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+p=$(tput setaf 5)
+
+echo "${y}**************************"
+echo "Installing JDK"
+echo "**************************${w}"
+
+# Verificar se o brew está instalado
+if ! command -v brew &> /dev/null
+then
+  echo "${r}brew is not installed. Installing Homebrew first.${w}"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+  echo "${g}brew is already installed.${w}"
+fi
+
+# Atualizar brew
+echo "${y}Updating Homebrew...${w}"
+brew update
+
+# Instalar OpenJDK
+echo "${y}Installing OpenJDK...${w}"
+brew install openjdk
+
+# Configurar JDK
+echo "${y}Configuring JDK...${w}"
+sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+
+# Adicionar JDK ao PATH e configurar variáveis de ambiente
+echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.bash_profile
+echo 'export CPPFLAGS="-I/opt/homebrew/opt/openjdk/include"' >> ~/.bash_profile
+source ~/.bash_profile
+
+# Verificar a instalação
+echo "${y}Verifying JDK installation...${w}"
+java -version
+javac -version
+
+echo "${g}**************************"
+echo "JDK installation completed!"
+echo "**************************${w}"

@@ -1,0 +1,45 @@
+#!/bin/bash
+w=$(tput sgr0)
+r=$(tput setaf 1)
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+p=$(tput setaf 5)
+
+echo "${y}**************************"
+echo 'Software versions'
+echo "**************************${w}"
+
+paste <(echo "${g}Java        ${w}") <(javac -version 2>&1 | awk '{print $2}')
+paste <(echo "${g}XZ utils   ${w}") <(xz -V | grep xz | awk '{print $4}')
+paste <(echo "${g}bcftools   ${w}") <(bcftools --version | grep bcftools | awk '{print $2}')
+paste <(echo "${g}htslib   ${w}") <(samtools --version | grep htslib | awk '{print $3}' | grep .)
+paste <(echo "${g}samtools${w}") <(samtools --version | grep samtools | awk '{print $2}')
+paste <(echo "${g}cmake      ${w}") <(cmake --version | grep version | awk '{print $3}')
+paste <(echo "${g}pcre      ${w}") <(pcre-config --version)
+paste <(echo "${g}pcre2      ${w}") <(pcre2-config --version)
+paste <(echo "${g}R            ${w}") <(R --version | grep version | grep R | awk '{print $3}')
+#paste <(echo "${g}Jellyfish      ${w}") <(jellyfish --version | awk '{print $2}')
+#paste <(echo "${g}Salmon      ${w}") <(salmon -v | awk '{print $2}')
+paste <(echo "${g}bowtie2      ${w}") <(bowtie2 --version | grep version | grep bowtie | awk '{print $NF}' FS=/ | awk '{print $3}')
+#paste <(echo "${g}Trinity      ${w}") <(Trinity --version | grep - | grep v2 | awk '{print $3}' | awk '{print $NF}' FS='-'| sed 's/v//' | grep -v Latest)
+paste <(echo "${g}ncbi-blast+  ${w}") <(blastx -version | grep Pack | awk '{print $NF}' FS=': ' | awk '{print $2}' | sed 's/,//')
+paste <(echo "${g}Python3      ${w}") <(python3 --version | awk '{print $2}')
+echo "${y}**************************${w}"
+
+# Script para verificar pacotes R
+echo "${g}*************************************************"
+echo "R packages versions${g}"
+echo "*************************************************${g}"
+
+packages=("RCurl" "goseq" "annotate" "GenomicRanges" "SummarizedExperiment" "genefilter" "DESeq2" "Biobase" "gplots" "ape" "qvalue" "fastcluster" "argparse" "seqLogo" "EBSeq" "ggplot2" "grid" "dplyr" "ggrepel" "EnhancedVolcano" "tidyverse" "DEXSeq")
+
+for pkg in "${packages[@]}"; do
+  version=$(R --no-restore -e "packageVersion(\"$pkg\")" | grep packageVersion -A 1 | awk 'NR==2 {print $2}' | sed 's/[\"()]//g')
+  if [ -z "$version" ]; then
+    version="${r}not installed${w}"
+  fi
+  echo -n "${g}${pkg}: ${w}${version}"
+  echo
+done
+
+echo "${g}*************************************************${w}"

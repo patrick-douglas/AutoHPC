@@ -1,0 +1,68 @@
+#!/bin/bash
+# This script installs NCBI BLAST+ and adds it to the PATH
+
+w=$(tput sgr0)
+r=$(tput setaf 1)
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+
+# Function to update PATH
+update_path() {
+    if [[ ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH"
+    fi
+}
+
+# Function to check if a command is available
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Update the PATH with the BLAST bin directory
+update_path "/usr/local/ncbi/blast/bin"
+
+echo "${g}*******************"
+echo 'ncbi-blast+'
+echo "*******************${w}"
+
+# Check if wget command exists
+if ! command_exists wget; then
+    echo "${g}Installing wget...${w}"
+    brew install wget
+fi
+
+# Download ncbi-blast+
+echo "${g}Downloading ncbi-blast+...${w}"
+cd ~/ || exit
+wget --progress=bar:force -nc -q ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-*.dmg
+
+# Check if dmg file exists
+if [ ! -f ~/ncbi-blast-*.dmg ]; then
+    echo "${r}Error: Downloaded file not found or failed to download.${w}"
+    exit 1
+fi
+
+# Mount the .dmg file
+echo "${g}Mounting the .dmg file...${w}"
+hdiutil attach ~/ncbi-blast-*.dmg -nobrowse >/dev/null || exit
+
+# Install ncbi-blast+
+echo "${g}Installing ncbi-blast+...${w}"
+sudo installer -pkg "/Volumes/NCBI BLAST+/ncbi-blast-*.pkg" -target /
+
+# Unmount the .dmg file
+echo "${g}Unmounting the .dmg file...${w}"
+hdiutil detach /Volumes/NCBI\ BLAST+ >/dev/null
+
+# Remove the downloaded .dmg file
+echo "${g}Removing the downloaded .dmg file...${w}"
+rm -f ~/ncbi-blast-*.dmg
+
+# Update PATH again in case installer modified it
+update_path "/usr/local/ncbi/blast/bin"
+
+# Check the version of BLAST installed
+echo "${g}----------------------------"
+echo 'Currently installed version:'
+echo "----------------------------${w}"
+blastx -version | grep Package
