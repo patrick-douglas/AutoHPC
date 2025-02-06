@@ -59,7 +59,7 @@ echo "${y}*******************"
 echo 'HMMER'
 echo "*******************${w}"
 hmmer_tar=/node_temp/hmmer.tar.gz
-hmmer_path=/node_temp/hmmer-3.3.2
+hmmer_path=/node_temp/hmmer-*
 hmmer_url=http://eddylab.org/software/hmmer/hmmer.tar.gz
 ssh $node_name "su -c 'cd /node_temp && wget $hmmer_url' $user_name"
 ssh $node_name "su -c 'cd /node_temp && tar zxf $hmmer_tar' $user_name"
