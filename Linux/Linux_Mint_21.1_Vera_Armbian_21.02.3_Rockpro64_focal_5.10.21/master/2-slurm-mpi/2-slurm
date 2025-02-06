@@ -72,6 +72,9 @@ git clone https://github.com/patrick-douglas/ubuntu-slurm.git
 apt-fast install libmunge-dev libmunge2 munge -y
 systemctl enable munge
 systemctl start munge
+
+apt-get install -y libdbus-1-dev
+
 echo "${g}"
 echo "-----------------------------"
 echo "Testing MUNGE...${w}"
