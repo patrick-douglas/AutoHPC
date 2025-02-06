@@ -61,7 +61,7 @@ echo "Installing required packages${w}
 "
 ssh $node_name apt-fast update
 ssh $node_name 'apt-fast install -y libmunge-dev libmunge2 munge'
-ssh $node_name 'libdbus-1-dev'
+ssh $node_name 'apt-fast install -y libdbus-1-dev'
 scp /etc/munge/munge.key root@$node_name:/etc/munge/
 ssh $node_name "chown munge:munge /etc/munge/munge.key"
 ssh $node_name "chmod 400 /etc/munge/munge.key"
