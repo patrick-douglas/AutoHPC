@@ -34,7 +34,7 @@ echo 'Parafly'
 echo "*******************${w}"
 parafly_path=/home/$user_name/parafly-r2013-01-21
 parafly_tar=/home/$user_name/parafly-r2013-01-21.tgz
-parafly_url=https://ufpr.dl.sourceforge.net/project/parafly/parafly-r2013-01-21.tgz
+parafly_url=https://master.dl.sourceforge.net/project/parafly/parafly-r2013-01-21.tgz
 su -c "cd /home/$user_name/ && wget $parafly_url" $user_name
 su -c "cd /home/$user_name/ && tar -zxf $parafly_tar" $user_name
 su -c "cd $parafly_path && ./configure" $user_name
