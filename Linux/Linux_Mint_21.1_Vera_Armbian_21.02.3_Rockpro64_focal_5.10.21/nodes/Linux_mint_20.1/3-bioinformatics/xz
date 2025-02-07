@@ -47,9 +47,9 @@ ssh $node_name "chown -R $user_name:$user_name /node_temp/"
 echo "${y}*******************"
 echo 'xz utils'
 echo "*******************${w}"
-xz_path=/node_temp/xz-5.2.5/
-xz_tar=/node_temp/xz-5.2.5.tar.gz
-xz_tar_URL=https://sonik.dl.sourceforge.net/project/lzmautils/xz-5.2.5.tar.gz
+xz_path=/node_temp/xz-5.6.4/
+xz_tar=/node_temp/xz-5.6.4.tar.gz
+xz_tar_URL=https://github.com/tukaani-project/xz/releases/download/v5.6.4/xz-5.6.4.tar.gz
 ssh $node_name "su -c 'cd /node_temp/ && wget $xz_tar_URL' $user_name"
 ssh $node_name "su -c 'cd /node_temp/ && tar -zxf $xz_tar' $user_name"
 ssh $node_name "su -c 'cd $xz_path && ./configure' $user_name"
