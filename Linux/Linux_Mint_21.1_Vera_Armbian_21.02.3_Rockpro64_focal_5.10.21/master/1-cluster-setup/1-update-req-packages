@@ -97,11 +97,13 @@ apt-fast install -y debconf-utils
 apt-fast update
 
 #Java 17 (NOTA: não usar apt-fast se não o auto-accept licensing não funciona)
-echo "deb http://ppa.launchpad.net/linuxuprising/java/ubuntu focal main" | tee /etc/apt/sources.list.d/linuxuprising-java.list
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 73C3DB2A
-echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections
-apt-get update 
-apt-get install -y oracle-java17-installer
+add-apt-repository ppa:openjdk-r/ppa -y >/dev/null
+echo -ne '#############             (66%)\r'
+echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections >/dev/null
+apt-get update >/dev/null 
+#apt-get install -y oracle-java17-installer >/dev/null
+apt-get install -y openjdk-17-jdk
+
 
 echo	"${g}----------------------------------------------------------------------------------"
 echo    "------------------ Phase 3: Installing required packages -------------------------"
