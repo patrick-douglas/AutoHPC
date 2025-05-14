@@ -12,11 +12,15 @@ echo -ne '#####                     (33%)\r'
 
 USAGE="USAGE: $0"
 
-add-apt-repository ppa:linuxuprising/java -y >/dev/null
+#add-apt-repository ppa:linuxuprising/java -y >/dev/null
+add-apt-repository ppa:openjdk-r/ppa -y >/dev/null
 echo -ne '#############             (66%)\r'
 echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections >/dev/null
 apt-get update >/dev/null 
-apt-get install -y oracle-java17-installer >/dev/null
+#apt-get install -y oracle-java17-installer >/dev/null
+apt-get install -y openjdk-17-jdk
+
+
 rm -rf /etc/apt/sources.list.d/linuxuprising-* >/dev/null
 apt-get update >/dev/null
 
