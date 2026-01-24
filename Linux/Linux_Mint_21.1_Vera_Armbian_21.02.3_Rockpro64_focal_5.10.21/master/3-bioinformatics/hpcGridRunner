@@ -33,7 +33,7 @@ echo "${y}*******************"
 echo 'Hpc Grid Runner'
 echo "*******************${w}"
 
-su -c "cd ~/ && git clone https://github.com/HpcGridRunner/HpcGridRunner.git" $user_name
+su -c "cd ~/ && git clone https://github.com/patrick-douglas/HpcGridRunner.git" $user_name
 
 echo "${g}"
 echo    "----------------------------"
