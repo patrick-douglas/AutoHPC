@@ -96,6 +96,7 @@ ssh $node_name "/usr/local/bin/pip3 install gffutils"
 ./seqtk -n $node_name -u $user_name
 ./python3 -n $node_name -u $user_name
 ./trinity-rnaseq -n $node_name -u $user_name
+./diamond -n $node_name -u $user_name
 ssh $node_name 'rm -rf /node_temp/'
 
 
