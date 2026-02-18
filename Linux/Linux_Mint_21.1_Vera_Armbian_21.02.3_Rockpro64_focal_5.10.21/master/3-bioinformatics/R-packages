@@ -1,110 +1,210 @@
-#!/bin/bash
-#Este script é executado atraves de um script primario
-w=$(tput sgr0) 
-r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
-threads=`nproc`
-rm -rf .out.log .err.log
-output_log=1
-while getopts o name
-do
-case $name in
-o) output_log=$OPTARG;;
-esac
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ==========================================
+# Este script é executado através de um script primário
+# ==========================================
+
+# Colors (safe if not a TTY)
+w=$(tput sgr0 2>/dev/null || true)
+r=$(tput setaf 1 2>/dev/null || true)
+g=$(tput setaf 2 2>/dev/null || true)
+y=$(tput setaf 3 2>/dev/null || true)
+
+threads="$(nproc 2>/dev/null || echo 1)"
+
+# Logs
+out_log=".out.log"
+err_log=".err.log"
+keep_logs=0
+
+usage() {
+  echo "USAGE: $0 [-o] [-h]"
+  echo "  -o   keep installation logs ($out_log / $err_log)"
+  echo "  -h   show this help"
+}
+
+while getopts ":oh" opt; do
+  case "$opt" in
+    o) keep_logs=1 ;;
+    h) usage; exit 0 ;;
+    \?) echo "${r}Error:${w} invalid option -$OPTARG"; usage; exit 1 ;;
+  esac
 done
 
-#install required libs
-echo "${g}************************************************"
-echo "  ${w}Installing required libraries and R packages${g}"
-echo "************************************************${w}"
-echo ''
-echo "NOTE: Use the parameter -o to keep installation logs"
-echo -ne '###                                      (8.33%)\r'
-sudo apt-fast update > .out.log 2> .err.log
-sudo apt-fast install -y build-essential fort77 xorg-dev liblzma-dev libblas-dev gfortran gcc-multilib gobjc++ aptitude libcurl4-openssl-dev libbz2-dev libproj-dev >> .out.log 2>> .err.log
-sudo apt-fast install -y libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libproj-dev libssl-dev libxml2-dev libcairo2-dev libtiff-dev libudunits2-dev >> .out.log 2>> .err.log
-sudo aptitude install -y libreadline-dev >> .out.log 2>> .err.log
+rm -f "$out_log" "$err_log"
 
-#R update
-echo -ne '#####                                   (11.19%)\r'
-R -e 'install.packages("BiocManager", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '######                                  (14.05%)\r'
-R -e 'update.packages(ask = FALSE, repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '#######                                 (16.90%) \r'
-R -e 'install.packages("ggalt", dependencies=TRUE, repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '########                                (22.62%)\r'
-R -e 'install.packages("proj4", repos="http://cran.us.r-project.org")' >> .out.log 2>> .err.log
-echo -ne '#########                               (25.48%)\r'
-R -e 'BiocManager::install("edgeR")' >> .out.log 2>> .err.log
-#echo -ne '##########                              (28.33%)\r'
-#R -e 'BiocManager::install("goseq")' >> .out.log 2>> .err.log
-echo -ne '###########                             (31.19%)\r'
-R -e 'BiocManager::install("limma")' >> .out.log 2>> .err.log
-echo -ne '############                            (34.05%)\r'
-R -e 'BiocManager::install("Glimma")' >> .out.log 2>> .err.log
-echo -ne '#############                           (36.90%)\r'
-R -e 'BiocManager::install("RCurl")' >> .out.log 2>> .err.log
-echo -ne '##############                          (39.76%)\r'
-R -e 'BiocManager::install("annotate")' >> .out.log 2>> .err.log
-echo -ne '###############                         (42.62%)\r'
-R -e 'BiocManager::install("GenomicRanges")' >> .out.log 2>> .err.log
-echo -ne '################                        (45.48%)\r'
-R -e 'BiocManager::install("SummarizedExperiment")' >> .out.log 2>> .err.log
-echo -ne '#################                       (48.33%)\r'
-R -e 'BiocManager::install("genefilter")' >> .out.log 2>> .err.log
-echo -ne '##################                      (51.19%)\r'
-R -e 'BiocManager::install("geneplotter")' >> .out.log 2>> .err.log
-echo -ne '###################                     (54.05%)\r'
-R -e 'BiocManager::install("DESeq2")' >> .out.log 2>> .err.log
-echo -ne '####################                    (56.90%)\r'
-R -e 'BiocManager::install("ctc")' >> .out.log 2>> .err.log
-echo -ne '#####################                   (59.76%)\r'
-R -e 'BiocManager::install("Biobase")' >> .out.log 2>> .err.log
-echo -ne '######################                  (62.62%)\r'
-R -e 'BiocManager::install("gplots")' >> .out.log 2>> .err.log
-echo -ne '#######################                 (65.45%)\r'
-R -e 'BiocManager::install("ape")' >> .out.log 2>> .err.log
-echo -ne '########################                (68.33%)\r'
-R -e 'BiocManager::install("qvalue")' >> .out.log 2>> .err.log
-echo -ne '#########################               (71.19%)\r'
-R -e 'BiocManager::install("fastcluster")' >> .out.log 2>> .err.log
-echo -ne '##########################              (74.05%)\r'
-R -e 'BiocManager::install("Biobase")' >> .out.log 2>> .err.log
-echo -ne '###########################             (76.90%)\r'
-R -e 'BiocManager::install("argparse")' >> .out.log 2>> .err.log
-echo -ne '############################            (79.76%)\r'
-R -e 'BiocManager::install("phytools")' >> .out.log 2>> .err.log
-echo -ne '#############################           (82.62%)\r'
-R -e 'BiocManager::install("seqLogo")' >> .out.log 2>> .err.log
-echo -ne '################################        (85.48%)\r'
-R -e 'BiocManager::install("EBSeq")' >> .out.log 2>> .err.log
-echo -ne '#################################       (88.33%)\r'
-R -e 'BiocManager::install("ggplot2")' >> .out.log 2>> .err.log
-echo -ne '##################################      (91.19%)\r'
-R -e 'BiocManager::install("grid")' >> .out.log 2>> .err.log
-echo -ne '###################################     (94.05%)\r'
-R -e 'BiocManager::install("dplyr")' >> .out.log 2>> .err.log
-echo -ne '#####################################   (96.90%)\r'
-R -e 'BiocManager::install("ggrepel")' >> .out.log 2>> .err.log
-echo -ne '######################################  (99.76%)\r'
-R -e 'BiocManager::install("BiocManager")' >> .out.log 2>> .err.log
-R -e 'BiocManager::install("devtools")' >> .out.log 2>> .err.log
-echo -ne '#######################################(100.00%)\r'
-R -e "BiocManager::install('tidyverse')" >> .out.log 2>> .err.log
-R -e "BiocManager::install('EnhancedVolcano')" >> .out.log 2>> .err.log
-echo -ne '#######################################(100.00%)\r'
-R -e "BiocManager::install('DEXSeq')" >> .out.log 2>> .err.log
+# Tee stdout/stderr to files while still printing
+exec 1> >(tee -a "$out_log") 2> >(tee -a "$err_log" >&2)
 
-echo "${g}"
-echo    "************************************************"
-echo	"${w}Currently installed version:${g}"
-echo    "************************************************"
-./R-packages_ver
+cleanup() {
+  if [[ "$keep_logs" -eq 0 ]]; then
+    rm -f "$out_log" "$err_log"
+  else
+    echo ""
+    echo "${y}Logs kept:${w} $out_log  $err_log"
+  fi
+}
+trap cleanup EXIT
 
-if [ ! -z "$output_log" ]; then
-rm -rf .out.log .err.log
-else 
-echo ''
+banner() {
+  echo "${g}************************************************"
+  echo "  ${w}$1${g}"
+  echo "************************************************${w}"
+}
+
+sudo_cmd() {
+  if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+    sudo "$@"
+  else
+    "$@"
+  fi
+}
+
+# Use apt-fast if available, else apt-get
+APT_BIN="apt-get"
+if command -v apt-fast >/dev/null 2>&1; then
+  APT_BIN="apt-fast"
 fi
 
+# ==========================================
+# System dependencies
+# ==========================================
+banner "Installing required system libraries"
+echo "NOTE: Use -o to keep installation logs"
+echo ""
+
+sudo_cmd "$APT_BIN" update -y
+
+# Unified deps list (Mint/Ubuntu Jammy compatible)
+SYS_DEPS=(
+  build-essential
+  pkg-config
+  gcc g++ gfortran
+  xorg-dev
+
+  # common R build deps
+  libcurl4-openssl-dev
+  libssl-dev
+  libxml2-dev
+  libreadline-dev
+  libbz2-dev
+  liblzma-dev
+
+  # graphics/fonts (ragg/systemfonts/textshaping)
+  libcairo2-dev
+  libfreetype6-dev
+  libpng-dev
+  libtiff5-dev
+  libjpeg-dev
+  libwebp-dev
+  libharfbuzz-dev
+  libfribidi-dev
+  libfontconfig1-dev
+  libgl1-mesa-dev
+
+  # spatial / misc
+  libudunits2-dev
+  libproj-dev
+  libblas-dev
+)
+
+sudo_cmd "$APT_BIN" install -y "${SYS_DEPS[@]}"
+
+# ==========================================
+# R packages (CRAN + Bioconductor)
+# ==========================================
+banner "Installing required R packages"
+echo ""
+
+R --vanilla - <<'RSCRIPT'
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# Use available cores, but don't explode laptops/VMs
+try({
+  options(Ncpus = max(1L, parallel::detectCores()))
+}, silent = TRUE)
+
+install_if_missing <- function(pkgs) {
+  for (p in pkgs) {
+    p <- trimws(p)
+    if (!nzchar(p)) next
+
+    if (!requireNamespace(p, quietly = TRUE)) {
+      message("Installing (CRAN): ", p)
+      install.packages(p, dependencies = TRUE)
+    } else {
+      message("Already installed: ", p)
+    }
+  }
+}
+
+# Ensure BiocManager
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+# Update CRAN packages without prompting
+update.packages(ask = FALSE, checkBuilt = TRUE)
+
+# -------- CRAN packages --------
+cran_pkgs <- c(
+  "tidyverse",
+  "ggplot2",
+  "dplyr",
+  "ggrepel",
+  "ggalt",
+  "devtools",
+  "argparse",
+  "fastcluster",
+  "qvalue",
+  "ape",
+  "phytools",
+  "gplots",
+  "proj4",
+  "ragg"
+)
+
+install_if_missing(cran_pkgs)
+
+# -------- Bioconductor packages --------
+bioc_pkgs <- c(
+  "edgeR",
+  "limma",
+  "Glimma",
+  "RCurl",
+  "annotate",
+  "GenomicRanges",
+  "SummarizedExperiment",
+  "genefilter",
+  "geneplotter",
+  "DESeq2",
+  "DEXSeq",
+  "EBSeq",
+  "EnhancedVolcano"
+)
+
+for (p in bioc_pkgs) {
+  p <- trimws(p)
+  if (!nzchar(p)) next
+
+  if (!requireNamespace(p, quietly = TRUE)) {
+    message("Installing (Bioconductor): ", p)
+    BiocManager::install(p, ask = FALSE, update = FALSE)
+  } else {
+    message("Already installed: ", p)
+  }
+}
+RSCRIPT
+
+# ==========================================
+# Report
+# ==========================================
+banner "Currently installed version"
+echo ""
+
+if [[ -x ./R-packages_ver ]]; then
+  ./R-packages_ver
+else
+  echo "${y}Note:${w} ./R-packages_ver not found or not executable; skipping."
+fi
