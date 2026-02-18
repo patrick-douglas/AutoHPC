@@ -9,18 +9,15 @@ y=$(tput setaf 3)
 p=$(tput setaf 5)
 pb=$(tput bold)
 
-USAGE="USAGE: $0 -c <clustername> -n <nodename> -p <ldappassword> -u <username> -w <networkinterfacename>"
+USAGE="USAGE: $0 -c <clustername> -n <nodename> -p <ldappassword> -u <username> -w <networkinterfacename> [-i]"
 
-if [ "$#" -lt "6" ] 
-then 
-    echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
-    var2=$4;
+if [ "$#" -lt "10" ]; then
+    echo -e "$USAGE"
+    exit 1
 fi
 
-while getopts c:n:p:u:w: option
+disable_lightdm=0
+while getopts c:n:p:u:w:i option
 do
 case "${option}"
 in
@@ -29,6 +26,7 @@ n) node_name=${OPTARG};;
 p) ldappassword=${OPTARG};;
 u) user_name=$OPTARG;;
 w) networkinterface=$OPTARG;;
+i) disable_lighdm=1;;
 esac
 done
 
@@ -336,4 +334,15 @@ echo "
                    Laboratório de Biologia Molecular e Neuroecologia  - IFPA 
 "
 rm -rf /home/.tmp/
+
+if [ "$disable_lightdm" -eq 1 ]; then
+  echo -e "setf 2" | tput -S
+  echo "----------------------------------------------------------------------------------"
+  echo "Optional: Disabling and removing lightdm..."
+  echo "----------------------------------------------------------------------------------"
+  echo -e "setf 7" | tput -S
+
+  ssh $node_name 'systemctl stop lightdm.service 2>/dev/null || service lightdm stop 2>/dev/null || true'
+  ssh $node_name 'DEBIAN_FRONTEND=noninteractive apt-get -y purge lightdm || DEBIAN_FRONTEND=noninteractive apt-get -y remove lightdm'
+fi
 ssh $node_name "reboot"
