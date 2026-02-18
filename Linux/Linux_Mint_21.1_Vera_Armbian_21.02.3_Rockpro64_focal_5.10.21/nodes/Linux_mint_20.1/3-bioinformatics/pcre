@@ -47,8 +47,8 @@ ssh $node_name "chown -R $user_name:$user_name /node_temp/"
 echo "${y}*******************"
 echo 'pcre'
 echo "*******************${w}"
-PCRE_path=/node_temp/pcre-8.43
-PCRE_tar=/node_temp/pcre-8.43.tar.gz
+PCRE_path=/node_temp/pcre-8.45
+PCRE_tar=/node_temp/pcre-8.45.tar.gz
 PCRE_URL=https://sitsa.dl.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.gz
 ssh $node_name "su -c 'cd /node_temp/ && wget $PCRE_URL' $user_name"
 ssh $node_name "su -c 'cd /node_temp/ && tar -zxf $PCRE_tar' $user_name"
@@ -59,8 +59,8 @@ ssh $node_name "cd $PCRE_path && sudo make install -j $threads"
 echo "${y}*******************"
 echo 'pcre2'
 echo "*******************${w}"
-PCRE2_path=/node_temp/pcre2-10.34/
-PCRE2_tar=/node_temp/pcre2-10.34.tar.gz
+PCRE2_path=/node_temp/pcre2-10.47/
+PCRE2_tar=/node_temp/pcre2-10.47.tar.gz
 PCRE2_URL=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.47/pcre2-10.47.tar.gz
 ssh $node_name "su -c 'cd /node_temp/ && wget $PCRE2_URL' $user_name"
 ssh $node_name "su -c 'cd /node_temp/ && tar -zxf $PCRE2_tar' $user_name"
