@@ -157,7 +157,6 @@ cran_pkgs <- c(
   "devtools",
   "argparse",
   "fastcluster",
-  "qvalue",
   "ape",
   "phytools",
   "gplots",
@@ -181,6 +180,8 @@ bioc_pkgs <- c(
   "DESeq2",
   "DEXSeq",
   "EBSeq",
+  "qvalue",
+  "seqLogo",
   "EnhancedVolcano"
 )
 
