@@ -95,10 +95,9 @@ ssh $node_name "/usr/local/bin/pip3 install gffutils"
 ./blast+ -n $node_name -u $user_name
 ./seqtk -n $node_name -u $user_name
 ./python3 -n $node_name -u $user_name
-./trinity-rnaseq -n $node_name -u $user_name
 ./diamond -n $node_name -u $user_name
+./trinity-rnaseq -n $node_name -u $user_name
 ssh $node_name 'rm -rf /node_temp/'
-
 
 ssh $node_name "/usr/local/bin/pip3 install numpy"
 ssh $node_name "/usr/local/bin/pip3 install --upgrade pip"

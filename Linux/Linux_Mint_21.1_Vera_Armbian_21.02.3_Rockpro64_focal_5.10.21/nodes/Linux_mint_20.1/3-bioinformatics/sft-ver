@@ -55,6 +55,7 @@ paste <(echo 'Trinity      ') <(ssh $node_name "/usr/local/bin/Trinity --version
 paste <(echo 'Salmon      ') <(ssh $node_name "salmon -v | awk '{print \$2}'")
 paste <(echo 'ncbi-blast+  ') <(ssh $node_name "blastx -version | grep Pack | awk '{print \$NF}' FS=': '" | awk '{print $2}' | sed 's/,//' )
 paste <(echo 'Python3      ') <(ssh $node_name "python3.9 --version | awk '{print \$2}'")
+paste <(echo 'Diamond      ') <(ssh $node_name "diamond --version | awk '{print \$3}'")
 echo "${y}**********************${w}" 
 
 
