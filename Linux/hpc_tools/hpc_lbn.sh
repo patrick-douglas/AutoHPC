@@ -17,7 +17,7 @@ TARGET_IP="11.0.0.1"
 
 # Hostnames
 HOSTS=(
-  "setereo2"
+  "stereo2"
   "mauro"
   "s5"
 )
