@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
+# =========================
+# Exigir root
+# =========================
+if [[ "$EUID" -ne 0 ]]; then
+  echo "Erro: este script precisa ser executado como root."
+  echo "Use:"
+  echo "  sudo $0 $*"
+  exit 1
+fi
 # =========================
 # Configuração do cluster
 # =========================
