@@ -10,7 +10,7 @@ r=$(tput setaf 1)
 R_ver=$(R --version | grep version | grep R | awk '{print $3}')
 
 # Lista de pacotes a checar
-pkgs=(tidyverse ggplot2 dplyr ggrepel ggalt devtools argparse fastcluster ape phytools gplots proj4 ragg BiocManager edgeR limma Glimma RCurl annotate GenomicRanges SummarizedExperiment genefilter geneplotter DESeq2 DEXSeq EBSeq qvalue seqLogo EnhancedVolcano Biobase grid)
+pkgs=(tidyverse ggplot2 dplyr ggrepel devtools argparse fastcluster ape phytools gplots proj4 ragg BiocManager edgeR limma Glimma RCurl annotate GenomicRanges SummarizedExperiment genefilter geneplotter DESeq2 DEXSeq EBSeq qvalue seqLogo EnhancedVolcano Biobase grid)
 
 # Cabeçalho da tabela
 echo "${g}"

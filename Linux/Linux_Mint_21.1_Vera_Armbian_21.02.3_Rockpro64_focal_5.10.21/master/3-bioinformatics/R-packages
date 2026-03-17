@@ -153,7 +153,6 @@ cran_pkgs <- c(
   "ggplot2",
   "dplyr",
   "ggrepel",
-  "ggalt",
   "devtools",
   "argparse",
   "fastcluster",
