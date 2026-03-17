@@ -24,7 +24,7 @@ HOSTS=(
 
 # MACs correspondentes
 MACS=(
-  "e0:d5:5e:f3:a3:90"  # setereo2
+  "e0:d5:5e:f3:a3:90"  # stereo2
   "04:42:1a:93:e6:79"  # mauro
   "a4:bf:01:37:22:ba"  # s5
 )
