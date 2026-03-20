@@ -79,7 +79,7 @@ wake_cluster() {
     sleep 1
   done
 
-  echo "Cluster ligado."
+  echo "Done."
 }
 
 shutdown_cluster() {
@@ -90,7 +90,7 @@ shutdown_cluster() {
     if ssh "$host" "sudo poweroff"; then
       echo "   OK: ${host}"
     else
-      echo "   Falha ao desligar ${host}"
+      echo " OK ${host}"
     fi
   done
 
