@@ -342,7 +342,7 @@ if [ "$disable_lightdm" -eq 1 ]; then
   echo "----------------------------------------------------------------------------------"
   echo -e "setf 7" | tput -S
 
-  ssh $node_name 'systemctl stop lightdm.service 2>/dev/null || service lightdm stop 2>/dev/null || true'
-  ssh $node_name 'DEBIAN_FRONTEND=noninteractive apt-get -y purge lightdm || DEBIAN_FRONTEND=noninteractive apt-get -y remove lightdm'
+  ssh $node_name 'service lightdm stop && init 3'
+  ssh $node_name 'apt-get -y remove lightdm'
 fi
 ssh $node_name "reboot"

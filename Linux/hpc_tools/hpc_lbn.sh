@@ -20,6 +20,7 @@ HOSTS=(
   "stereo2"
   "mauro"
   "s5"
+  "x99"
 )
 
 # MACs correspondentes

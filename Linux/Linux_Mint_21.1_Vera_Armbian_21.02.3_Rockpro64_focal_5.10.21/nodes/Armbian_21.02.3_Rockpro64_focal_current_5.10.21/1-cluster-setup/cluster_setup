@@ -101,22 +101,36 @@ echo 'expect "Are you sure you want to continue connecting"' >> setup-ssh.ex
 echo "send \"yes\\r\"" >> setup-ssh.ex
 echo "expect \"root@$node_ip's password:\"" >> setup-ssh.ex
 echo 'send "1234\r"' >> setup-ssh.ex
-echo 'expect "New root password:"' >> setup-ssh.ex
+
+echo 'expect "(current) UNIX password:"' >> setup-ssh.ex
+echo 'send "1234\r"' >> setup-ssh.ex
+
+echo 'expect "Enter new UNIX password:"' >> setup-ssh.ex
 echo 'send "rockpro64\r"' >> setup-ssh.ex
-echo 'expect "Repeat password:"'  >> setup-ssh.ex
+
+echo 'expect "Retype new UNIX password:"'  >> setup-ssh.ex
 echo 'send "rockpro64\r"'  >> setup-ssh.ex
-echo 'expect "Choose default system command shell:"'  >> setup-ssh.ex
-echo 'send "1"'  >> setup-ssh.ex
+
+#echo 'expect "Choose default system command shell:"'  >> setup-ssh.ex
+#echo 'send "1"'  >> setup-ssh.ex
 echo 'expect "Please provide a username (eg. your forename):"'  >> setup-ssh.ex
 echo "send \"$user_name\r\""  >> setup-ssh.ex
-echo 'expect "Create password:"'  >> setup-ssh.ex
+
+echo 'expect "Enter new UNIX password:"'  >> setup-ssh.ex
 echo 'send "rockpro64\r"'  >> setup-ssh.ex
-echo 'expect "Repeat password:"'  >> setup-ssh.ex
+
+echo 'expect "Retype new UNIX password"'  >> setup-ssh.ex
 echo 'send "rockpro64\r"'  >> setup-ssh.ex
-echo 'expect "Please provide your real name:"'  >> setup-ssh.ex
+
+#echo 'expect "Please provide your real name:"'  >> setup-ssh.ex
 echo "send \"\025\025$user_name\r\""  >> setup-ssh.ex
-echo 'expect "Set user language based on your location?"'  >> setup-ssh.ex
-echo 'send "n"'  >> setup-ssh.ex
+#echo 'expect "Set user language based on your location?"'  >> setup-ssh.ex
+#echo 'send "n"'  >> setup-ssh.ex
+echo 'send "\r"'  >> setup-ssh.ex
+echo 'send "\r"'  >> setup-ssh.ex
+echo 'send "\r"'  >> setup-ssh.ex
+echo 'send "\r"'  >> setup-ssh.ex
+echo 'send "Y\r"'  >> setup-ssh.ex
 echo "send \"scp -r $user_name@master:/home/$user_name/.ssh .\r\"" >> setup-ssh.ex
 echo 'expect "Are you sure you want to continue connecting"' >> setup-ssh.ex
 echo "send \"yes\r\"" >> setup-ssh.ex
