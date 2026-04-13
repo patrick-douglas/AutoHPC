@@ -112,7 +112,7 @@ echo ""
 
 echo "installing other packages:${w}"
 apt-fast install -y isc-dhcp-server wget nfs-common bind9 ntp gcc make vim
-apt-fast install -y openssh-client openssh-server npm
+apt-fast install -y openssh-client openssh-server npm nmap etherwake gnome-system-monitor
 DEBIAN_FRONTEND=noninteractive apt-fast install --yes vim build-essential gcc-multilib apt-utils zlib1g-dev perl perl-base git libtbb-dev libxml2-dev openssh-client openssh-server ntp ganglia-monitor nfs-common g++ make
 echo ""https://download.teamviewer.com/download/linux/teamviewer_amd64.deb?utm_source=google&utm_medium=cpc&utm_campaign=br%7Cb%7Cpr%7C22%7Coct%7Ctv-core-download-sn%7Cnew%7Ct0%7C0&utm_content=Download&utm_term=download%20teamviewer&gad=1&gclid=EAIaIQobChMI2bjIruiE_wIVrjrUAR0WWAyxEAAYASAAEgK9gvD_BwE
 apt-fast install --yes -y apt-utils perl perl-base git libtbb-dev build-essential python3-pip libtool

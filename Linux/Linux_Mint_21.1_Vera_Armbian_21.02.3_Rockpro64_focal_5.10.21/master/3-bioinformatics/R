@@ -1,62 +1,115 @@
 #!/bin/bash
-#Este script é executado atraves de um script primario
-w=$(tput sgr0) 
+# This script is executed through a primary script
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+
 USAGE="USAGE: $0 -u <username>"
-if [ "$#" -lt "1" ] 
-then 
-    echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
+
+if [ "$#" -lt 1 ]; then
+    echo -e "$USAGE"
+    exit 1
 fi
 
 while getopts u: option
 do
-case "${option}"
-in
-u) user_name=$OPTARG;;
-esac
+    case "${option}" in
+        u) user_name=$OPTARG ;;
+    esac
 done
 
-if [ "$user_name" = "" ]; then
-"${g}Error, missing arguments:${y} -u | User name | <string>
-${w}$USAGE"
-exit 1
+if [ -z "$user_name" ]; then
+    echo "${r}Error: missing argument ${y}-u <username>${w}"
+    echo "$USAGE"
+    exit 1
 fi
-threads=`nproc`
-#install required libs
+
+threads=$(nproc)
+
+# Install required libraries
 echo "${y}*****************************"
-echo 'Installing required libraries'
+echo "Installing required libraries"
 echo "*****************************${w}"
 sudo apt-fast install -y build-essential fort77 liblzma-dev libblas-dev gfortran gcc-multilib gobjc++ aptitude libcurl4-openssl-dev libbz2-dev libproj-dev xorg-dev
 sudo aptitude install -y libreadline-dev
 
-#R update
+# R installation/update
 echo "${y}*******************"
-echo 'R'
+echo "R Installation"
 echo "*******************${w}"
-R_path=/home/$user_name/R-*.*.*
-R_tar=R-latest.tar.gz
-R_url=https://cran.r-project.org/src/base/R-latest.tar.gz
-rm -rf $R_path $R_path.tar.gz
-su -c "cd ~/ && wget $R_url" $user_name
-su -c "cd ~/ && tar -zxf $R_tar" $user_name
+
+R_path_glob="/home/$user_name/R-*.*.*"
+R_tar="R-latest.tar.gz"
+R_url="https://cran.r-project.org/src/base/R-latest.tar.gz"
+
+max_tries=10
+try=1
+
+rm -rf $R_path_glob "/home/$user_name/$R_tar"
+
+# Retry download loop
+while [ $try -le $max_tries ]; do
+    echo "${y}Attempt $try of $max_tries to download R...${w}"
+
+    if su -c "cd ~/ && rm -f '$R_tar' && wget --tries=3 --timeout=30 --waitretry=5 -O '$R_tar' '$R_url'" "$user_name"; then
+        echo "${g}Download completed successfully.${w}"
+        break
+    fi
+
+    echo "${r}Download failed.${w}"
+
+    if [ $try -eq $max_tries ]; then
+        echo "${r}Error: failed to download $R_url after $max_tries attempts.${w}"
+        exit 1
+    fi
+
+    try=$((try + 1))
+    sleep 5
+done
+
+# Extract
+if ! su -c "cd ~/ && tar -zxf '$R_tar'" "$user_name"; then
+    echo "${r}Error extracting $R_tar.${w}"
+    exit 1
+fi
+
 rm -rf /home/$user_name/R-*.tar.gz
-su -c "cd $R_path && ./configure --with-cairo" $user_name
-su -c "cd $R_path && make -j $threads" $user_name
-cd $R_path && sudo make uninstall -j $threads
-cd $R_path && sudo make install -j $threads
 
-chown -R $user_name:$user_name /home/$user_name
-rm -rf $R_path /home/$user_name/$R_tar && cd
+# Find extracted directory
+R_path=$(find /home/"$user_name" -maxdepth 1 -type d -name "R-*" | head -n 1)
 
+if [ -z "$R_path" ]; then
+    echo "${r}Error: could not locate extracted R directory.${w}"
+    exit 1
+fi
+
+# Configure
+if ! su -c "cd '$R_path' && ./configure --with-cairo" "$user_name"; then
+    echo "${r}Error during R configure step.${w}"
+    exit 1
+fi
+
+# Compile
+if ! su -c "cd '$R_path' && make -j $threads" "$user_name"; then
+    echo "${r}Error during R compilation.${w}"
+    exit 1
+fi
+
+# Install (ignore uninstall failure if any)
+cd "$R_path" && sudo make uninstall -j "$threads" || true
+cd "$R_path" && sudo make install -j "$threads"
+
+# Fix ownership and cleanup
+chown -R "$user_name:$user_name" "/home/$user_name"
+rm -rf "$R_path" "/home/$user_name/$R_tar"
+cd
+
+# Show installed version
 echo "${g}"
-echo    "----------------------------"
-echo	"Currently installed version:"
-echo    "---------------------------${w}"
+echo "----------------------------"
+echo "Currently installed version:"
+echo "---------------------------${w}"
 R --version | grep version | grep R
-echo    "${g}------------------------"
-
+echo "${g}------------------------${w}"
