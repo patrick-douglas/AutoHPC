@@ -86,7 +86,7 @@ if [ -z "$R_path" ]; then
 fi
 
 # Configure
-if ! su -c "cd '$R_path' && ./configure --with-cairo" "$user_name"; then
+if ! su -c "cd '$R_path' && ./configure --with-cairo --enable-R-shlib" "$user_name"; then
     echo "${r}Error during R configure step.${w}"
     exit 1
 fi

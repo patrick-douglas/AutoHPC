@@ -16,7 +16,7 @@ if [ "$#" -lt "10" ]; then
     exit 1
 fi
 
-disable_lightdm=0
+disable_lightdm=1
 while getopts c:n:p:u:w:i option
 do
 case "${option}"
@@ -109,7 +109,8 @@ ssh $node_name 'add-apt-repository ppa:linuxuprising/java -y && apt-fast update'
 ssh $node_name 'echo oracle-java17-installer shared/accepted-oracle-license-v1-3 select true | sudo /usr/bin/debconf-set-selections'
 ssh $node_name 'sudo apt-get -y install oracle-java17-installer'
 ssh $node_name 'sudo apt install oracle-java17-set-default'
-ssh $node_name 'DEBIAN_FRONTEND=noninteractive apt-fast install --yes vim build-essential gcc-multilib apt-utils zlib1g-dev perl perl-base git libtbb-dev libxml2-dev openssh-client openssh-server ntp ganglia-monitor nfs-common g++ make'
+ssh $node_name 'DEBIAN_FRONTEND=noninteractive apt-fast install --yes vim build-essential gcc-multilib apt-utils zlib1g-dev perl perl-base git libtbb-dev libxml2-dev openssh-server ntp ganglia-monitor g++ make'
+ssh $node_name 'apt-fast install -y nfs-common'
 
 #	ssh $node_name "apt-fast -y purge libpam-ldap nscd"
 	ssh $node_name "DEBIAN_FRONTEND=noninteractive apt-fast install -y libpam-ldap nscd"
@@ -334,8 +335,7 @@ echo "
                    Laboratório de Biologia Molecular e Neuroecologia  - IFPA 
 "
 rm -rf /home/.tmp/
-
-if [ "$disable_lightdm" -eq 1 ]; then
+cd 
   echo -e "setf 2" | tput -S
   echo "----------------------------------------------------------------------------------"
   echo "Optional: Disabling and removing lightdm..."
@@ -344,5 +344,4 @@ if [ "$disable_lightdm" -eq 1 ]; then
 
   ssh $node_name 'service lightdm stop && init 3'
   ssh $node_name 'apt-get -y remove lightdm'
-fi
 ssh $node_name "reboot"
