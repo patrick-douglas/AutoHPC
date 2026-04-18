@@ -232,6 +232,48 @@ echo	"--------------------------------------------------------------------------
 echo    "------------------ Phase 2: Installing required packages -------------------------"
 echo    "----------------------------------------------------------------------------------"
 echo "${w}"	
+#sETUP FAN SPEED
+#Criar o script remoto
+ssh "$node_name" 'cat > /usr/local/bin/fan-max.sh << "EOF"
+#!/bin/bash
+set -e
+
+PWM="$(find /sys/devices/platform/pwm-fan/hwmon/ -name pwm1 2>/dev/null | head -n1)"
+
+if [ -z "$PWM" ]; then
+    echo "Erro: pwm1 nao encontrado" >&2
+    exit 1
+fi
+
+PWM_ENABLE="${PWM}_enable"
+
+echo 1 > "$PWM_ENABLE"
+echo 255 > "$PWM"
+EOF
+chmod +x /usr/local/bin/fan-max.sh'
+
+#Criar o serviço remoto
+ssh "$node_name" 'cat > /etc/systemd/system/fan-max.service << "EOF"
+[Unit]
+Description=Set fan to maximum speed
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/fan-max.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
+#Ativar e iniciar
+ssh "$node_name" 'systemctl daemon-reload && systemctl enable fan-max.service && systemctl start fan-max.service'
+#Verificar
+ssh "$node_name" 'systemctl status fan-max.service --no-pager'
+
+
+
 
 ssh $node_name 'locale-gen pt_BR.UTF-8'
 ssh $node_name "sudo add-apt-repository -y ppa:apt-fast/stable"
@@ -409,6 +451,8 @@ sed -i '/%admin ALL=(ALL) ALL/ a \%admins ALL=(ALL) ALL' /home/.tmp/sudoers
 scp /home/.tmp/sudoers root@$node_name:/etc/sudoers
 echo -ne '                                                                          (100%)\r'
 echo -ne '\n'
+#set-up fan max speed continuous
+./fan-setup.sh -n $node_name
 
 echo "${g}"
 echo	"------------------------------------------------------------------------------------"

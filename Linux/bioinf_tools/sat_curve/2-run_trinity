@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+show_help() {
+  cat << 'EOF'
+Usage:
+  run_trinity_by_pct.sh [options]
+
+Description:
+  Runs Trinity assemblies for multiple percentage-based FASTQ subsets.
+
+Options:
+  --cpu N              Number of CPUs for Trinity (default: 20)
+  --max_memory STR     Max memory for Trinity (default: 100G)
+  --gridrunner PATH    Path to grid_exec_wrap.sh
+  --gridconf PATH      Path to SLURM Trinity config
+  --force              Force overwrite existing outputs
+  --no-auto            Disable auto-detection of percentage folders
+  --help               Show this help message
+
+Behavior:
+  By default, the script auto-detects folders named:
+    10/, 20/, 30/, ... etc
+
+  Inside each folder it expects:
+    Single-end:
+      reads_XXpct.fq
+
+    Paired-end:
+      reads_XXpct_R1.fq
+      reads_XXpct_R2.fq
+
+Examples:
+  ./run_trinity_by_pct.sh --cpu 32 --max_memory 200G
+
+EOF
+}
+
+# ===== DEFAULTS =====
+CPU=20
+MAX_MEM="100G"
+GRIDRUNNER="/home/me/HpcGridRunner/grid_exec_wrap.sh"
+GRIDCONF="/home/me/HpcGridRunner/hpc_conf/SLURM.Trinity.conf"
+AUTO_DETECT=1
+FORCE=0
+
+# Manual fallback (only used if --no-auto)
+PCTS=(10 20 30 40 50 60 70 80 90 100)
+
+# ===== ARG PARSER =====
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --cpu)
+      CPU="$2"
+      shift 2
+      ;;
+    --max_memory)
+      MAX_MEM="$2"
+      shift 2
+      ;;
+    --gridrunner)
+      GRIDRUNNER="$2"
+      shift 2
+      ;;
+    --gridconf)
+      GRIDCONF="$2"
+      shift 2
+      ;;
+    --force)
+      FORCE=1
+      shift
+      ;;
+    --no-auto)
+      AUTO_DETECT=0
+      shift
+      ;;
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    *)
+      echo "ERROR: unknown option $1"
+      show_help
+      exit 1
+      ;;
+  esac
+done
+
+# ===== CHECKS =====
+command -v Trinity >/dev/null 2>&1 || { echo "ERROR: Trinity not found in PATH"; exit 1; }
+[[ -f "$GRIDRUNNER" ]] || { echo "ERROR: missing $GRIDRUNNER"; exit 1; }
+[[ -f "$GRIDCONF" ]]   || { echo "ERROR: missing $GRIDCONF"; exit 1; }
+
+echo "=============================="
+echo "Trinity saturation pipeline"
+echo "=============================="
+echo "CPU           : $CPU"
+echo "Max memory    : $MAX_MEM"
+echo "Auto-detect   : $AUTO_DETECT"
+echo "Force         : $FORCE"
+echo
+
+# ===== AUTO-DETECT =====
+if [[ "$AUTO_DETECT" -eq 1 ]]; then
+  echo ">> Detecting percentage folders..."
+  mapfile -t PCTS < <(find . -maxdepth 1 -type d -regex './[0-9]+' \
+    | sed 's|./||' | sort -n)
+fi
+
+echo ">> Percentages: ${PCTS[*]}"
+echo
+
+# ===== LOOP =====
+for pct in "${PCTS[@]}"; do
+  dir="${pct}"
+  fq="reads_${pct}pct.fq"
+  fq1="reads_${pct}pct_R1.fq"
+  fq2="reads_${pct}pct_R2.fq"
+  out="reads_${pct}pct.trinity_out"
+
+  echo "=============================="
+  echo ">> Processing ${pct}%"
+  echo "=============================="
+
+  [[ -d "$dir" ]] || { echo "WARNING: folder '$dir' not found, skipping"; continue; }
+
+  pushd "$dir" >/dev/null
+
+  MODE=""
+
+  if [[ -f "$fq" ]]; then
+    MODE="single"
+  elif [[ -f "$fq1" && -f "$fq2" ]]; then
+    MODE="paired"
+  else
+    echo "WARNING: no FASTQ found, skipping"
+    popd >/dev/null
+    continue
+  fi
+
+  echo ">> Mode: $MODE"
+
+  if [[ -d "$out" && "$FORCE" -eq 0 ]]; then
+    echo "WARNING: output exists, skipping"
+    popd >/dev/null
+    continue
+  fi
+
+  if [[ -d "$out" && "$FORCE" -eq 1 ]]; then
+    echo ">> Removing existing output"
+    rm -rf "$out"
+  fi
+
+  echo ">> Running Trinity..."
+
+  if [[ "$MODE" == "single" ]]; then
+    Trinity --seqType fq --single "$fq" --full_cleanup --max_memory "$MAX_MEM" --CPU "$CPU" --grid_exec "$GRIDRUNNER --parafly --grid_conf $GRIDCONF -c" --grid_node_CPU '$(nproc)' --grid_node_max_memory "$(free -g | awk '/^Mem:/ {print $2}')G" --output "$out"
+  else
+    Trinity --seqType fq --left "$fq1" --right "$fq2" --full_cleanup --max_memory "$MAX_MEM" --CPU "$CPU" --grid_exec "$GRIDRUNNER --parafly --grid_conf $GRIDCONF -c" --grid_node_CPU '$(nproc)' --grid_node_max_memory "$(free -g | awk '/^Mem:/ {print $2}')G" --output "$out"
+  fi
+
+  echo ">> DONE: ${pct}%"
+  popd >/dev/null
+done
+
+echo
+echo "✅ All Trinity assemblies completed."

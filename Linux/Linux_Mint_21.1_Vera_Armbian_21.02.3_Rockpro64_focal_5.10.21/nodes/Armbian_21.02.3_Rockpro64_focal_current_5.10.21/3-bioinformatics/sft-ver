@@ -48,7 +48,8 @@ paste <(echo 'Jellyfish      ') <(ssh $node_name "jellyfish --version | awk '{pr
 paste <(echo 'ncbi-blast+  ') <(ssh $node_name "blastx -version | grep Pack | awk '{print \$NF}' FS=': '" | awk '{print $2}' | sed 's/,//' )
 paste <(echo 'Python3      ') <(ssh $node_name "python3 --version | awk '{print \$2}'")
 paste <(echo 'bowtie2      ') <(ssh $node_name "bowtie2 --version | grep version | grep bowtie | awk '{print \$NF}' FS=/ | awk '{print \$3}'")
-paste <(echo 'Trinity      ') <(ssh $node_name "/usr/local/bin/trinityrnaseq-latest/Trinity --version | grep - | grep v2 | awk '{print \$3}' | awk '{print \$NF}' FS='-'| sed 's/v//'")
+paste <(echo 'Trinity      ') <(ssh $node_name "/usr/local/bin/trinityrnaseq-latest/Trinity --version | grep - | grep v2 | awk '{print \$3}' | awk '{print \$NF}' FS='-'| sed 's/v//' | grep -v Latest")
+paste <(echo 'diamond      ') <(ssh $node_name "diamond --version 2>&1 | grep -oP '\d+\.\d+\.\d+' | head -n1")
 #paste <(echo 'Salmon      ') <(ssh $node_name "salmon -v | awk '{print \$2}'")
 echo "${w}****************************${w}" 
 #./R-packages_ver -n $node_name 

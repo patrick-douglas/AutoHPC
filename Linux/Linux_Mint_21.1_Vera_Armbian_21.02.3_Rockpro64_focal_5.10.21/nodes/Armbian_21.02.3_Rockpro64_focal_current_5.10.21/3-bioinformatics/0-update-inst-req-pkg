@@ -63,7 +63,7 @@ ssh $node_name "apt-fast install -y gcc libncurses5-dev zlib1g-dev build-essenti
 ssh $node_name 'apt-fast install --yes apt-utils perl perl-base git libtbb-dev build-essential libtool -y'
 ssh $node_name "sudo aptitude install libreadline-dev -y"
 ssh $node_name "apt-fast -y install python-setuptools python-dev build-essential"
-
+ssh $node_name "apt-fast install diamond-aligner -y"
 #./1-pyhton3-pip-numpy -n $node_name
 ./2-bzip -n $node_name
 ./3-bcftools -n $node_name
