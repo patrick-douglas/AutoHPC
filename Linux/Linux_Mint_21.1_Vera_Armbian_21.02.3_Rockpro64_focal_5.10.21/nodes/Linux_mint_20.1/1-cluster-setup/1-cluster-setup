@@ -172,14 +172,14 @@ echo    "-----------------------------------------------------------------------
 echo	"Editing the fstab file..."
 echo    "----------------------------------------------------------------------------------"
 echo -e "setf 7" | tput -S
-scp root@$node_name:/etc/fstab /home/.tmp
+scp root@$node_name:/etc/fstab /home/.tmp/
 
 LINE="master.$clustername.com:/root	/root	nfs nfsvers=3,nolock	0 0"
 FILE=/home/.tmp/fstab
 grep -q "$LINE" "$FILE" || echo "$LINE" >> "$FILE"
 
 scp /home/.tmp/fstab root@$node_name:/etc
-scp root@$node_name:/etc/fstab /home/.tmp
+scp root@$node_name:/etc/fstab /home/.tmp/
 
 LINE="master.$clustername.com:/home	/home	nfs nfsvers=3,nolock	0 0"
 FILE=/home/.tmp/fstab
@@ -261,7 +261,7 @@ echo	"Configuring pam..."
 echo    "----------------------------------------------------------------------------------"
 echo -e "setf 7" | tput -S
 
-scp root@$node_name:/etc/pam.d/common-session /home/.tmp
+scp root@$node_name:/etc/pam.d/common-session /home/.tmp/
 
 sed -i '/# end of pam-auth-update config/d' /home/.tmp/common-session
 sed -i '/session required	pam_mkhomedir.so	skel=/etc/skel  umask=0022/d' /home/.tmp/common-session
@@ -285,7 +285,7 @@ echo    "-----------------------------------------------------------------------
 echo	"Configuring sudoers..."
 echo    "----------------------------------------------------------------------------------"
 echo -e "setf 7" | tput -S
-scp root@$node_name:/etc/sudoers /home/.tmp
+scp root@$node_name:/etc/sudoers /home/.tmp/
 sed -i '/%admin ALL=(ALL) ALL/ a \%admins ALL=(ALL) ALL' /home/.tmp/sudoers
 scp /home/.tmp/sudoers root@$node_name:/etc/sudoers
 echo -ne '                                                                          (100%)\r'

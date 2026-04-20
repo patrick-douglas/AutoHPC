@@ -76,8 +76,9 @@ echo "${w}"
 #Install Slurm
 ssh $node_name 'apt-fast install git gcc make ruby ruby-dev libpam0g-dev libmariadbclient-dev -y'
 ssh $node_name 'gem install fpm'
-slurm_deb_arm_URL=https://master.dl.sourceforge.net/project/rock64-dependencies/Slurm/slurm-21.08.5_1.0_arm64_fpm.deb
-slurm_deb=/node_temp/slurm-21.08.5_1.0_arm64_fpm.deb
+slurm_deb_arm_URL=https://master.dl.sourceforge.net/project/rock64-dependencies/Slurm/slurm-22.05.0-0rc1_1.0_arm64.deb
+#slurm_deb_arm_URL=https://master.dl.sourceforge.net/project/rock64-dependencies/Slurm/slurm-21.08.5_1.0_arm64_fpm.deb
+slurm_deb=/node_temp/slurm-22.05.0-0rc1_1.0_arm64.deb
 threads=`ssh $node_name "nproc"`
 ssh $node_name "mkdir -p /etc/slurm"
 ssh $node_name 'rm -rf /node_temp/'

@@ -14,7 +14,7 @@ OUTFMT="6"
 SENS="--more-sensitive"
 
 SEQS_PER_BIN="1000"
-PCTS=(100)
+PCTS=(10)
 
 FORCE=1
 # ==================================

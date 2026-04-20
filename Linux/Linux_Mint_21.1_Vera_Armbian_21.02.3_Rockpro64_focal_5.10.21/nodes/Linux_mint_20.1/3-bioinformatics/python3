@@ -60,6 +60,10 @@ ssh $node_name "cd $python_path && sudo make install -j $threads"
 ssh $node_name "rm -rf $python_path /node_temp/$python_tar"
 python_version=`ssh $node_name python3.9 --version`
 
+ssh $node_name "su -c 'pip3 install -U setuptools' $user_name"
+ssh $node_name "su -c 'pip3 install numpy' $user_name"
+ssh $node_name "su -c 'pip3 install --upgrade pip' $user_name"
+ssh $node_name "su -c 'pip3 install biopython' $user_name"
 
 ssh $node_name 'rm -rf /node_temp/'
 echo "${g}"

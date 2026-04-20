@@ -154,9 +154,10 @@ for pct in "${PCTS[@]}"; do
   echo ">> Running Trinity..."
 
   if [[ "$MODE" == "single" ]]; then
-    Trinity --seqType fq --single "$fq" --full_cleanup --max_memory "$MAX_MEM" --CPU "$CPU" --grid_exec "$GRIDRUNNER --parafly --grid_conf $GRIDCONF -c" --grid_node_CPU '$(nproc)' --grid_node_max_memory "$(free -g | awk '/^Mem:/ {print $2}')G" --output "$out"
+    Trinity --seqType fq --single "$fq" --full_cleanup --max_memory "$MAX_MEM" --CPU "$CPU" --grid_exec "$GRIDRUNNER --parafly --grid_conf $GRIDCONF -c" --output "$out" 
+#--grid_node_CPU '$(nproc)' --grid_node_max_memory "$(free -g | awk '/^Mem:/ {print $2}')G"
   else
-    Trinity --seqType fq --left "$fq1" --right "$fq2" --full_cleanup --max_memory "$MAX_MEM" --CPU "$CPU" --grid_exec "$GRIDRUNNER --parafly --grid_conf $GRIDCONF -c" --grid_node_CPU '$(nproc)' --grid_node_max_memory "$(free -g | awk '/^Mem:/ {print $2}')G" --output "$out"
+    Trinity --seqType fq --left "$fq1" --right "$fq2" --full_cleanup --max_memory "$MAX_MEM" --CPU "$CPU" --grid_exec "$GRIDRUNNER --parafly --grid_conf $GRIDCONF -c" --output "$out"
   fi
 
   echo ">> DONE: ${pct}%"
