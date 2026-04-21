@@ -134,9 +134,8 @@ systemctl daemon-reload
 systemctl enable slurmdbd
 systemctl start slurmdbd
 systemctl enable slurmctld
-sinfo
 systemctl start slurmctld
-
+sinfo
 #Create initial slurm cluster, account, and user.
 
 echo '#!/usr/bin/expect' > /storage/slurm_expect.exp
@@ -167,7 +166,7 @@ COUNT=`nvidia-smi -L > gpu.counts && wc -l < gpu.counts && rm gpu.counts`
 
 echo "NodeName="$HOSTNAME" Sockets=$SOCKETS CoresPerSocket=$CORESPERSOCKET ThreadsPerCore=$THREADSPERCORE RealMemory=$REALMEM State=UNKNOWN" >> /etc/slurm/slurm.conf
 service slurmctld restart
-#service slurmd restart
+service slurmd restart
 echo "${g}------------------------------------------------------------------------------------------------"
 sinfo -l -N
 echo "------------------------------------------------------------------------------------------------${w}"

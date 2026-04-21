@@ -113,7 +113,7 @@ apt-get purge slapd ldap-utils phpldapadmin -y
 
 DEBIAN_FRONTEND=noninteractive apt-fast install slapd ldap-utils expect -y 
 #dpkg-reconfigure slapd
-
+touch /home/.tmp/expect.ex
 echo '#!/usr/bin/expect' > /home/.tmp/expect.ex
 echo "spawn dpkg-reconfigure slapd" >>/home/.tmp/expect.ex
 echo "expect \"Omit OpenLDAP server configuration?\"" >>/home/.tmp/expect.ex
