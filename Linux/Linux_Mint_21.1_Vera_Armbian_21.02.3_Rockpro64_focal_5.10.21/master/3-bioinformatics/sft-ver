@@ -1,48 +1,80 @@
 #!/bin/bash
-w=$(tput sgr0) 
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
+g=$(tput setaf 2)
+y=$(tput setaf 3)
 p=$(tput setaf 5)
+
+print_version() {
+    local label="$1"
+    local version="$2"
+
+    if [ -n "$version" ]; then
+        printf "%b%-14s%b %s\n" "$g" "$label" "$w" "$version"
+    else
+        printf "%b%-14s%b %bNOT FOUND%b\n" "$g" "$label" "$w" "$r" "$w"
+    fi
+}
+
+get_first_match() {
+    find /home -path "$1" 2>/dev/null | head -n 1
+}
+
 echo "${y}**************************"
-echo 'Software versions'
+echo "Software versions"
 echo "**************************${w}"
 
-paste <(echo "${g}Java        ${w}") <(javac -version | awk '{print $2}')
-paste <(echo "${g}XZ utils   ${w}") <(xz -V | grep xz | awk '{print $4}')
-paste <(echo "${g}bcftools   ${w}") <(bcftools --version | grep bcftools | awk '{print $2}')
-paste <(echo "${g}htslib   ${w}") <(samtools --version | grep htslib | awk '{print $3}' | grep .)
-paste <(echo "${g}samtools${w}") <(samtools --version | grep samtools | awk '{print $2}')
-paste <(echo "${g}cmake      ${w}") <(/usr/local/bin/cmake --version | grep version | awk '{print $3}')
-paste <(echo "${g}pcre      ${w}") <(pcre-config --version)
-paste <(echo "${g}pcre2      ${w}") <(pcre2-config --version)
-paste <(echo "${g}R            ${w}") <(R --version | grep version | grep R | awk '{print $3}')
-paste <(echo "${g}Jellyfish      ${w}") <(jellyfish --version | awk '{print $2}')
-paste <(echo "${g}Salmon      ${w}") <(salmon -v | awk '{print $2}')
-paste <(echo "${g}bowtie2      ${w}") <(bowtie2 --version | grep version | grep bowtie | awk '{print $NF}' FS=/ | awk '{print $3}')
-paste <(echo "${g}Trinity      ${w}") <(/usr/local/bin/Trinity --version | grep - | grep v2 | awk '{print $3}' | awk '{print $NF}' FS='-'| sed 's/v//' | grep -v Latest)
-paste <(echo "${g}ncbi-blast+  ${w}") <(blastx -version | grep Pack | awk '{print $NF}' FS=': ' | awk '{print $2}' | sed 's/,//')
-paste <(echo "${g}Python3      ${w}") <(python3 --version | awk '{print $2}')
-paste <(echo "${g}FastQC      ${w}") <(/home/*/FastQC/fastqc -v | awk '{print $2}')
-paste <(echo "${g}VIRTUS      ${w}") <(cat /home/*/VIRTUS/bin/VIRTUS.SE.cwl | grep 'doc: VIRTUS' | awk '{print $3}')
-paste <(echo "${g}VIRTUS2     ${w}") <(cat /home/*/VIRTUS2/bin/VIRTUS.SE.cwl | grep 'doc: VIRTUS' | awk '{print $3}')
-paste <(echo "${g}Wine     ${w}") <(wine --version | awk -F "-" '{print $2}')
-paste <(echo "${g}STAR     ${w}") <(STAR --version )
-paste <(echo "${g}Trimmomatic ${w}") <(java -jar /home/*/Trimmomatic-0.39/trimmomatic-0.39.jar -version)
+print_version "Java"        "$(javac -version 2>&1 | awk '{print $2}')"
+print_version "XZ utils"    "$(xz -V 2>/dev/null | awk 'NR==1{print $4}')"
+print_version "bcftools"    "$(bcftools --version 2>/dev/null | awk 'NR==1{print $2}')"
+print_version "htslib"      "$(samtools --version 2>/dev/null | awk '/^Using htslib/ {print $3; exit}')"
+print_version "samtools"    "$(samtools --version 2>/dev/null | awk 'NR==1{print $2}')"
+print_version "cmake"       "$(cmake --version 2>/dev/null | awk 'NR==1{print $3}')"
+print_version "pcre"        "$(pcre-config --version 2>/dev/null)"
+print_version "pcre2"       "$(pcre2-config --version 2>/dev/null)"
+print_version "R"           "$(R --version 2>/dev/null | awk 'NR==1{print $3}')"
+print_version "Jellyfish"   "$(jellyfish --version 2>/dev/null | awk '{print $2}')"
+print_version "Salmon"      "$(salmon -v 2>/dev/null | awk '{print $2}')"
+print_version "bowtie2"     "$(bowtie2 --version 2>/dev/null | awk 'NR==1{print $3}')"
+print_version "Trinity"     "$(Trinity --version 2>/dev/null | awk -F'[- ]' '/Trinity-v/ {for(i=1;i<=NF;i++) if($i ~ /^v[0-9]/){gsub(/^v/,"",$i); print $i; exit}}')"
+print_version "ncbi-blast+" "$(blastx -version 2>&1 | grep -oE '[0-9]+(\.[0-9]+)+\+?' | head -n 1)"
+print_version "Python3"     "$(python3 --version 2>/dev/null | awk '{print $2}')"
 
-#paste <(echo "${g}Subread     ${w}") <(echo $subreadv)
-echo "${y}**************************${w}" 
-./R-packages_ver 
-echo ''
-if [[ $(lshw -C display | grep vendor) =~ NVIDIA ]]; then
-echo "${y}*******************************${w}"
-echo "NVIDIA driver and CUDA versions${y}"
-echo "*******************************${w}"
-paste <(echo "${g}NVIDIA Driver: ${w}") <(nvidia-smi | grep Driver | awk '{print $6}')
-paste <(echo "${g}CUDA:         ${w}") <(nvidia-smi | grep Driver | awk '{print $9}')
-echo "${y}*******************************${w}" 
+FASTQC_BIN=$(get_first_match "*/FastQC/fastqc")
+print_version "FastQC"      "$([ -n "$FASTQC_BIN" ] && "$FASTQC_BIN" -v 2>/dev/null | awk '{print $2}')"
+
+VIRTUS_SE=$(get_first_match "*/VIRTUS/bin/VIRTUS.SE.cwl")
+print_version "VIRTUS"      "$([ -n "$VIRTUS_SE" ] && awk '/doc: VIRTUS/ {print $3; exit}' "$VIRTUS_SE" 2>/dev/null)"
+
+VIRTUS2_SE=$(get_first_match "*/VIRTUS2/bin/VIRTUS.SE.cwl")
+print_version "VIRTUS2"     "$([ -n "$VIRTUS2_SE" ] && awk '/doc: VIRTUS/ {print $3; exit}' "$VIRTUS2_SE" 2>/dev/null)"
+
+print_version "Wine"        "$(wine --version 2>/dev/null | awk -F'-' '{print $2}')"
+print_version "STAR"        "$(STAR --version 2>/dev/null)"
+print_version "Trimmomatic" "$(
+    TRIMMO_JAR=$(get_first_match "*/Trimmomatic-0.39/trimmomatic-0.39.jar")
+    [ -n "$TRIMMO_JAR" ] && java -jar "$TRIMMO_JAR" -version 2>/dev/null
+)"
+
+# Optional
+print_version "Subread" "$(subread-align -v 2>&1 | awk 'NF{print $NF; exit}')"
+
+echo "${y}**************************${w}"
+
+if [ -x ./R-packages_ver ]; then
+    ./R-packages_ver
 else
-  echo ''
+    echo "${r}R-packages_ver not found or not executable.${w}"
 fi
 
+echo ""
 
+if command -v nvidia-smi >/dev/null 2>&1; then
+    echo "${y}*******************************${w}"
+    echo "NVIDIA driver and CUDA versions"
+    echo "${y}*******************************${w}"
+    print_version "Driver" "$(nvidia-smi 2>/dev/null | awk '/Driver Version/ {print $6; exit}')"
+    print_version "CUDA"   "$(nvidia-smi 2>/dev/null | awk '/CUDA Version/ {print $9; exit}')"
+    echo "${y}*******************************${w}"
+fi

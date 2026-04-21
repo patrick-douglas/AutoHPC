@@ -1,50 +1,78 @@
 #!/bin/bash
-#Este script é executado atraves de um script primario
-w=$(tput sgr0) 
+# This script is executed through a primary script
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+
 USAGE="USAGE: $0 -u <username>"
-if [ "$#" -lt "1" ] 
-then 
-    echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
+
+if [ "$#" -lt 1 ]; then
+    echo -e "$USAGE"
+    exit 1
 fi
 
-while getopts u: option
-do
-case "${option}"
-in
-u) user_name=$OPTARG;;
-esac
+while getopts "u:" option; do
+    case "${option}" in
+        u) user_name=$OPTARG ;;
+    esac
 done
 
-if [ "$user_name" = "" ]; then
-"${g}Error, missing arguments:${y} -u | User name | <string>
-${w}$USAGE"
-exit 1
+if [ -z "$user_name" ]; then
+    echo -e "${r}Error: missing argument ${y}-u <username>${w}"
+    echo -e "$USAGE"
+    exit 1
 fi
-threads=`nproc`
-#HMMER
+
+threads=$(nproc)
+
+download_with_retry() {
+    local url="$1"; local output="$2"; local label="$3"
+    local max_attempts=5; local attempt=1
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Downloading $label (attempt $attempt of $max_attempts)..."
+        su -c "cd ~/ && wget -O '$output' '$url'" "$user_name"
+        if [ $? -eq 0 ] && [ -s "$output" ]; then return 0; fi
+        rm -f "$output"
+        attempt=$((attempt + 1))
+    done
+    echo "${r}ERROR: Failed to download $label after $max_attempts attempts. Installation aborted.${w}"
+    exit 1
+}
+
 echo "${y}*******************"
-echo 'HMMER'
+echo "HMMER"
 echo "*******************${w}"
-hmmer_tar=/home/$user_name/hmmer-3.3.2.tar.gz
-hmmer_path=/home/$user_name/hmmer-3.3.2
-hmmer_url=http://eddylab.org/software/hmmer/hmmer-3.3.2.tar.gz
-su -c "cd ~/ && wget $hmmer_url" $user_name
-su -c "cd ~/ && tar zxf $hmmer_tar" $user_name
-su -c "cd $hmmer_path && ./configure" $user_name
-su -c "cd $hmmer_path && make -j $threads" $user_name
-cd $hmmer_path && sudo make install -j $threads
-rm -rf $hmmer_tar $hmmer_path
+
+hmmer_tar="/home/$user_name/hmmer-3.3.2.tar.gz"
+hmmer_path="/home/$user_name/hmmer-3.3.2"
+hmmer_url="http://eddylab.org/software/hmmer/hmmer-3.3.2.tar.gz"
+
+download_with_retry "$hmmer_url" "$hmmer_tar" "HMMER"
+
+su -c "cd ~/ && tar -zxf '$hmmer_tar'" "$user_name" || {
+    echo "${r}ERROR: Failed to extract the HMMER source archive.${w}"
+    exit 1
+}
+su -c "cd '$hmmer_path' && ./configure" "$user_name" || {
+    echo "${r}ERROR: HMMER configuration step failed.${w}"
+    exit 1
+}
+su -c "cd '$hmmer_path' && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: HMMER compilation step failed.${w}"
+    exit 1
+}
+cd "$hmmer_path" && sudo make install -j "$threads" || {
+    echo "${r}ERROR: HMMER installation step failed.${w}"
+    exit 1
+}
+
+rm -rf "$hmmer_tar" "$hmmer_path"
 
 echo "${g}"
-echo    "----------------------------"
-echo	"Currently installed version:"
-echo    "---------------------------${w}"
+echo "----------------------------"
+echo "Currently installed version:"
+echo "----------------------------${w}"
 hmmscan -h | grep HMMER
-echo    "${g}------------------------"
-
+echo "${g}----------------------------${w}"

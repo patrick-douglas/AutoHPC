@@ -1,192 +1,344 @@
-
 #!/bin/bash
-#Este script é executado atraves de um script primario
-#second opt Set up only torque in the nodes
-w=$(tput sgr0) 
+# This script is executed through a primary script
+# Configures SLURM controller on the master node
+
+set -Eeuo pipefail
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
+g=$(tput setaf 2)
 y=$(tput setaf 3)
-p=$(tput setaf 5)  
-#root requirements
-if [[ $(/usr/bin/id -u) -ne 0 ]]; then
-    echo "${y}-----------------------------------------------------------------------------------"
-    echo "This script requires root privileges, please run${w} sudo su${y} or${w} sudo -i ${y}prior to run it"
-    echo "e.g.${w} sudo $0 -c <clustername> -u <username> ${y}"
-    echo "-----------------------------------------------------------------------------------"
-    exit
-fi
+p=$(tput setaf 5)
+
+LOG_FILE="/var/log/slurm_controller_install.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+touch "$LOG_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+trap 'echo "${r}ERROR: Installation failed at line $LINENO. Check $LOG_FILE for details.${w}"' ERR
+
 USAGE="$0 -c <clustername> -u <username>"
 
-if [ "$#" -lt "3" ] 
-then 
-    echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
-    var2=$4;
-fi
+require_root() {
+    if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+        echo "${y}-----------------------------------------------------------------------------------"
+        echo "This script requires root privileges. Please run ${w}sudo su${y} or ${w}sudo -i${y} before running it."
+        echo "For example: ${w}sudo $0 -c <clustername> -u <username>${y}"
+        echo "-----------------------------------------------------------------------------------${w}"
+        exit 1
+    fi
+}
 
-while getopts c:u: option
-do
-case "${option}"
-in
-c) cluster_name=${OPTARG};;
-u) user_name=${OPTARG};;
-esac
-done
+parse_args() {
+    if [ "$#" -lt 4 ]; then
+        echo -e "$USAGE"
+        exit 1
+    fi
 
-if [ "$cluster_name" = "" ]; then
-"Error, missing arguments
-Try: $USAGE"
-exit 1
-fi
-if [ "$user_name" = "" ]; then
-"Error, missing arguments
-Try: $USAGE"
-exit 1
-fi
+    while getopts "c:u:" option; do
+        case "${option}" in
+            c) cluster_name=${OPTARG} ;;
+            u) user_name=${OPTARG} ;;
+            *) echo -e "$USAGE"; exit 1 ;;
+        esac
+    done
 
-echo -e "${g}"
-echo	"-----------------------------------------------------------------------------------"
-echo    "------------------------------ Configuring SLURM ----------------------------------"
-echo    "-----------------------------------------------------------------------------------"
-echo "${g}Cluster name:${w}"
-echo "$cluster_name"
-echo "${g}User name:${w}"
-echo "$user_name"
-echo "${g}----------------------------------------------------------------------------------"
+    if [ -z "${cluster_name:-}" ]; then
+        echo -e "${r}Error: missing argument ${y}-c <clustername>${w}"
+        echo -e "$USAGE"
+        exit 1
+    fi
 
-echo "${g}"
-echo "Installing required packages"
-echo ""
-echo "${w}"
-rm -rf /storage /root/slurm*
-apt-fast update 
-apt-fast install git gcc make ruby ruby-dev libpam0g-dev -y
-apt-fast install -y libmariadb-dev #libmariadbclient-dev
-apt-fast install -y libmariadb-dev-compat libmariadb-dev
-gem install fpm
+    if [ -z "${user_name:-}" ]; then
+        echo -e "${r}Error: missing argument ${y}-u <username>${w}"
+        echo -e "$USAGE"
+        exit 1
+    fi
+}
 
-rm -rf /storage && mkdir -p /storage && cd /storage
-git clone https://github.com/patrick-douglas/ubuntu-slurm.git
-apt-fast install libmunge-dev libmunge2 munge -y
-systemctl enable munge
-systemctl start munge
+info() {
+    echo "${g}$*${w}"
+}
 
-apt-get install -y libdbus-1-dev
+warn() {
+    echo "${y}$*${w}"
+}
 
-echo "${g}"
-echo "-----------------------------"
-echo "Testing MUNGE...${w}"
-munge -n | unmunge | grep STATUS
-echo "${g}-----------------------------"
-echo "${w}"
+die() {
+    echo "${r}ERROR: $*${w}"
+    exit 1
+}
 
+download_with_retry() {
+    local url="$1"
+    local output="$2"
+    local label="$3"
+    local max_attempts=5
+    local attempt=1
 
-apt-fast install mariadb-server -y
-systemctl enable mariadb.service
-systemctl start mysql
-echo '#!/usr/bin/expect' > /storage/expect_mariadb.exp
-echo 'spawn mysql -u root' >> /storage/expect_mariadb.exp
-echo 'send "create database slurm_acct_db;\r"' >> /storage/expect_mariadb.exp
-echo 'send "create user '"'"'slurm'"'"'@'"'"'localhost'"'"';\r"' >> /storage/expect_mariadb.exp
-echo 'send "set password for '"'"'slurm'"'"'@'"'"'localhost'"'"' = password('"'"'slurmdbpass'"'"');\r"' >> /storage/expect_mariadb.exp
-echo 'send "grant usage on *.* to '"'"'slurm'"'"'@'"'"'localhost'"'"';\r"' >> /storage/expect_mariadb.exp
-echo 'send "grant all privileges on slurm_acct_db.* to '"'"'slurm'"'"'@'"'"'localhost'"'"';\r"' >> /storage/expect_mariadb.exp
-echo 'send "flush privileges;\r"' >> /storage/expect_mariadb.exp
-echo 'send "exit\r"' >> /storage/expect_mariadb.exp
-echo 'expect eof' >> /storage/expect_mariadb.exp
-chmod +x /storage/expect_mariadb.exp
-/storage/expect_mariadb.exp
-rm -rf /storage/expect_mariadb.exp
+    warn "Downloading $label..."
 
-#slurm
-threads=`nproc`
-slurm_bz2=/root/slurm-22.05.0-0rc1.tar.bz2
-slurm_dir=/root/slurm-22.05.0-0rc1
-slurm_deb=slurm-22.05.0-0rc1_1.0_amd64.deb
-slurm_URL=https://download.schedmd.com/slurm/slurm-22.05.0-0rc1.tar.bz2
-slurm_v=slurm-22.05.0-0rc1
-apt-fast install glib-2.0 libperl-dev libgtk2.0-dev -y
-cd /root && wget $slurm_URL
-cd /root && tar xjf $slurm_bz2
-cd $slurm_dir && ./configure --prefix=/tmp/slurm-build --sysconfdir=/etc/slurm --enable-pam --with-pam_dir=/lib/x86_64-linux-gnu/security/ --without-shared-libslurm
-cd $slurm_dir && make -j $threads
-cd $slurm_dir && make contrib -j $threads
-cd $slurm_dir && make install -j $threads
-cd /root && fpm -s dir -t deb -v 1.0 -n $slurm_v --prefix=/usr -C /tmp/slurm-build .
-cd /root && dpkg -i --force-all $slurm_deb
-#cd /root && dpkg -i $slurm_deb
-rm -f $slurm_deb
-useradd slurm
-mkdir -p /etc/slurm /etc/slurm/prolog.d /etc/slurm/epilog.d /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm
-chown slurm /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Attempt $attempt of $max_attempts..."
+        wget -O "$output" "$url" && [ -s "$output" ] && {
+            info "Download completed successfully."
+            return 0
+        }
+        rm -f "$output"
+        attempt=$((attempt + 1))
+        sleep 3
+    done
 
-cd /storage
-cp ubuntu-slurm/slurmdbd.service /etc/systemd/system/
-cp ubuntu-slurm/slurmctld.service /etc/systemd/system/
+    die "Failed to download $label after $max_attempts attempts. Installation aborted."
+}
 
-cp ubuntu-slurm/slurm.conf /etc/slurm/
-cp ubuntu-slurm/slurmdbd.conf /etc/slurm/
-chown slurm /etc/slurm/slurmdbd.conf
-chmod 600 /etc/slurm/slurmdbd.conf
-systemctl daemon-reload
-systemctl enable slurmdbd
-systemctl start slurmdbd
-systemctl enable slurmctld
-systemctl start slurmctld
-sinfo
-#Create initial slurm cluster, account, and user.
+git_clone_with_retry() {
+    local repo_url="$1"
+    local dest_dir="$2"
+    local label="$3"
+    local max_attempts=5
+    local attempt=1
 
-echo '#!/usr/bin/expect' > /storage/slurm_expect.exp
-echo "spawn sacctmgr add cluster $cluster_name" >> /storage/slurm_expect.exp
-echo 'send "y\r"' >> /storage/slurm_expect.exp
-echo 'expect eof' >> /storage/slurm_expect.exp
-chmod +x /storage/slurm_expect.exp
-/storage/slurm_expect.exp
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Cloning $label (attempt $attempt of $max_attempts)..."
+        rm -rf "$dest_dir"
+        git clone "$repo_url" "$dest_dir" && return 0
+        attempt=$((attempt + 1))
+        sleep 3
+    done
 
-echo '#!/usr/bin/expect' > /storage/slurm_expect.exp
-echo 'spawn sacctmgr add account compute-account description="Compute accounts" Organization=OurOrg' >> /storage/slurm_expect.exp
-echo 'send "y\r"' >> /storage/slurm_expect.exp
-echo 'expect eof' >> /storage/slurm_expect.exp
-/storage/slurm_expect.exp
+    die "Failed to clone $label after $max_attempts attempts. Installation aborted."
+}
 
-echo '#!/usr/bin/expect' > /storage/slurm_expect.exp
-echo "spawn sacctmgr create user me account=compute-account adminlevel=None" >> /storage/slurm_expect.exp
-echo 'send "y\r"' >> /storage/slurm_expect.exp
-echo 'expect eof' >> /storage/slurm_expect.exp
-/storage/slurm_expect.exp
-rm -rf /storage/slurm_expect.exp
+check_service_active() {
+    local service_name="$1"
+    systemctl is-active --quiet "$service_name" || die "$service_name is not active."
+}
 
-SOCKETS=`lscpu | grep "Socket(s):"  | cut -d : -f 2 | awk '{print $1}'`
-THREADSPERCORE=`lscpu | grep "Thread(s) per core:" | cut -d : -f 2 | awk '{print $1}'`
-CORESPERSOCKET=`lscpu | grep "Core(s) per socket:" | cut -d : -f 2 | awk '{print $1}'`
-REALMEM=`free -m | grep Mem | awk '{print $2}'`
-COUNT=`nvidia-smi -L > gpu.counts && wc -l < gpu.counts && rm gpu.counts`
+run_expect_script() {
+    local file_path="$1"
+    expect "$file_path" || die "Failed to execute expect script: $file_path"
+}
 
-echo "NodeName="$HOSTNAME" Sockets=$SOCKETS CoresPerSocket=$CORESPERSOCKET ThreadsPerCore=$THREADSPERCORE RealMemory=$REALMEM State=UNKNOWN" >> /etc/slurm/slurm.conf
-service slurmctld restart
-service slurmd restart
-echo "${g}------------------------------------------------------------------------------------------------"
-sinfo -l -N
-echo "------------------------------------------------------------------------------------------------${w}"
-rm -rf $slurm_dir $slurm_deb $slurm_bz2
+create_file_from_here_doc() {
+    local path="$1"
+    cat > "$path"
+    chmod +x "$path"
+}
 
-# Adding Master as node
-cp /storage/ubuntu-slurm/cgroup.conf /etc/slurm/cgroup.conf
-useradd slurm
-mkdir -p /var/spool/slurm/d
-cp /storage/ubuntu-slurm/slurmd.service /etc/systemd/system/
-nvidia-smi -r
-systemctl enable slurmd
-systemctl restart slurmd
+configure_mariadb_for_slurm() {
+    local exp_file="/storage/expect_mariadb.exp"
 
+    create_file_from_here_doc "$exp_file" <<'EOF'
+#!/usr/bin/expect
+spawn mysql -u root
+expect {
+    "MariaDB" {}
+    "mysql>" {}
+    timeout { exit 1 }
+}
+send "CREATE DATABASE IF NOT EXISTS slurm_acct_db;\r"
+expect "mysql>"
+send "CREATE USER IF NOT EXISTS 'slurm'@'localhost' IDENTIFIED BY 'slurmdbpass';\r"
+expect "mysql>"
+send "GRANT USAGE ON *.* TO 'slurm'@'localhost';\r"
+expect "mysql>"
+send "GRANT ALL PRIVILEGES ON slurm_acct_db.* TO 'slurm'@'localhost';\r"
+expect "mysql>"
+send "FLUSH PRIVILEGES;\r"
+expect "mysql>"
+send "exit\r"
+expect eof
+EOF
 
-echo "${g}"
-echo ""
-echo -e "setf 2" | tput -S
-echo	"----------------------------------------------------------------------------------"
-echo    "-------------------------- Slurm configured successfully -------------------------"
-echo    "----------------------------------------------------------------------------------"	
+    run_expect_script "$exp_file"
+    rm -f "$exp_file"
+}
 
+configure_slurm_accounting() {
+    local exp_file="/storage/slurm_expect.exp"
 
+    create_file_from_here_doc "$exp_file" <<EOF
+#!/usr/bin/expect
+spawn sacctmgr add cluster $cluster_name
+expect {
+    -re "Would you like to commit changes.*" { send "y\r" }
+    eof
+}
+EOF
+    run_expect_script "$exp_file"
+
+    create_file_from_here_doc "$exp_file" <<'EOF'
+#!/usr/bin/expect
+spawn sacctmgr add account compute-account description="Compute accounts" Organization=OurOrg
+expect {
+    -re "Would you like to commit changes.*" { send "y\r" }
+    eof
+}
+EOF
+    run_expect_script "$exp_file"
+
+    create_file_from_here_doc "$exp_file" <<EOF
+#!/usr/bin/expect
+spawn sacctmgr create user $user_name account=compute-account adminlevel=None
+expect {
+    -re "Would you like to commit changes.*" { send "y\r" }
+    eof
+}
+EOF
+    run_expect_script "$exp_file"
+
+    rm -f "$exp_file"
+}
+
+append_node_to_slurm_conf() {
+    local sockets cores_per_socket threads_per_core realmem
+    sockets=$(lscpu | awk -F: '/Socket\(s\)/ {gsub(/ /,"",$2); print $2}')
+    threads_per_core=$(lscpu | awk -F: '/Thread\(s\) per core/ {gsub(/ /,"",$2); print $2}')
+    cores_per_socket=$(lscpu | awk -F: '/Core\(s\) per socket/ {gsub(/ /,"",$2); print $2}')
+    realmem=$(free -m | awk '/Mem:/ {print $2}')
+
+    echo "NodeName=$HOSTNAME Sockets=$sockets CoresPerSocket=$cores_per_socket ThreadsPerCore=$threads_per_core RealMemory=$realmem State=UNKNOWN" >> /etc/slurm/slurm.conf
+}
+
+main() {
+    require_root
+    parse_args "$@"
+
+    local threads slurm_bz2 slurm_dir slurm_deb slurm_url slurm_pkg_name
+    threads=$(nproc)
+    slurm_bz2="/root/slurm-22.05.0-0rc1.tar.bz2"
+    slurm_dir="/root/slurm-22.05.0-0rc1"
+    slurm_deb="/root/slurm-22.05.0-0rc1_1.0_amd64.deb"
+    slurm_url="https://download.schedmd.com/slurm/slurm-22.05.0-0rc1.tar.bz2"
+    slurm_pkg_name="slurm-22.05.0-0rc1"
+
+    info "-----------------------------------------------------------------------------------"
+    info "------------------------------ Configuring SLURM ----------------------------------"
+    info "-----------------------------------------------------------------------------------"
+    echo "${g}Cluster name:${w}"
+    echo "$cluster_name"
+    echo "${g}User name:${w}"
+    echo "$user_name"
+    info "-----------------------------------------------------------------------------------"
+
+    warn "Cleaning previous temporary files..."
+    rm -rf /storage /root/slurm*
+
+    warn "Updating package lists..."
+    apt-fast update
+
+    warn "Installing required packages..."
+    apt-fast install -y \
+        git gcc make ruby ruby-dev libpam0g-dev \
+        libmariadb-dev libmariadb-dev-compat mariadb-server \
+        libmunge-dev libmunge2 munge libdbus-1-dev \
+        glib-2.0 libperl-dev libgtk2.0-dev expect
+
+    gem install fpm || die "Failed to install fpm via RubyGems."
+
+    mkdir -p /storage
+    cd /storage
+
+    git_clone_with_retry "https://github.com/patrick-douglas/ubuntu-slurm.git" "/storage/ubuntu-slurm" "ubuntu-slurm"
+
+    warn "Enabling and starting MUNGE..."
+    systemctl enable munge
+    systemctl restart munge
+    check_service_active "munge"
+
+    info "-----------------------------"
+    info "Testing MUNGE..."
+    info "-----------------------------"
+    munge -n | unmunge | grep STATUS || die "MUNGE test failed."
+
+    warn "Enabling and starting MariaDB..."
+    systemctl enable mariadb.service
+    systemctl restart mariadb.service
+    check_service_active "mariadb"
+
+    warn "Configuring MariaDB for SLURM accounting..."
+    configure_mariadb_for_slurm
+
+    warn "Downloading and building SLURM..."
+    download_with_retry "$slurm_url" "$slurm_bz2" "SLURM"
+    cd /root
+    tar -xjf "$slurm_bz2"
+    cd "$slurm_dir"
+
+    ./configure \
+        --prefix=/tmp/slurm-build \
+        --sysconfdir=/etc/slurm \
+        --enable-pam \
+        --with-pam_dir=/lib/x86_64-linux-gnu/security/ \
+        --without-shared-libslurm
+
+    make -j "$threads"
+    make contrib -j "$threads"
+    make install -j "$threads"
+
+    cd /root
+    fpm -s dir -t deb -v 1.0 -n "$slurm_pkg_name" --prefix=/usr -C /tmp/slurm-build .
+    dpkg -i --force-all "$slurm_deb"
+    rm -f "$slurm_deb"
+
+    id slurm >/dev/null 2>&1 || useradd slurm
+
+    mkdir -p /etc/slurm /etc/slurm/prolog.d /etc/slurm/epilog.d \
+             /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm
+
+    chown slurm /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm
+
+    cp /storage/ubuntu-slurm/slurmdbd.service /etc/systemd/system/
+    cp /storage/ubuntu-slurm/slurmctld.service /etc/systemd/system/
+    cp /storage/ubuntu-slurm/slurmd.service /etc/systemd/system/
+    cp /storage/ubuntu-slurm/slurm.conf /etc/slurm/
+    cp /storage/ubuntu-slurm/slurmdbd.conf /etc/slurm/
+    cp /storage/ubuntu-slurm/cgroup.conf /etc/slurm/cgroup.conf
+
+    chown slurm /etc/slurm/slurmdbd.conf
+    chmod 600 /etc/slurm/slurmdbd.conf
+
+    append_node_to_slurm_conf
+
+    systemctl daemon-reload
+
+    warn "Starting slurmdbd..."
+    systemctl enable slurmdbd
+    systemctl restart slurmdbd
+    check_service_active "slurmdbd"
+
+    warn "Starting slurmctld..."
+    systemctl enable slurmctld
+    systemctl restart slurmctld
+    check_service_active "slurmctld"
+
+    sinfo || die "sinfo failed after starting slurmctld."
+
+    warn "Configuring initial SLURM cluster/account/user..."
+    configure_slurm_accounting
+
+    warn "Restarting SLURM services..."
+    systemctl restart slurmctld
+    systemctl enable slurmd
+    systemctl restart slurmd
+    check_service_active "slurmd"
+
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        nvidia-smi -r || true
+    fi
+
+    info "------------------------------------------------------------------------------------------------"
+    sinfo -l -N
+    info "------------------------------------------------------------------------------------------------"
+
+    rm -rf "$slurm_dir" "$slurm_bz2"
+
+    echo "${g}"
+    echo "----------------------------------------------------------------------------------"
+    echo "-------------------------- Slurm configured successfully -------------------------"
+    echo "----------------------------------------------------------------------------------${w}"
+    echo "Log file: $LOG_FILE"
+}
+
+main "$@"

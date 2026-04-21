@@ -1,53 +1,67 @@
 #!/bin/bash
-#Este script é executado atraves de um script primario
-w=$(tput sgr0) 
+# This script is executed through a primary script
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+
 USAGE="USAGE: $0 -u <username>"
-if [ "$#" -lt "1" ] 
-then 
-    echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
+
+if [ "$#" -lt 1 ]; then
+    echo -e "$USAGE"
+    exit 1
 fi
 
-while getopts u: option
-do
-case "${option}"
-in
-u) user_name=$OPTARG;;
-esac
+while getopts "u:" option; do
+    case "${option}" in
+        u) user_name=$OPTARG ;;
+    esac
 done
 
-if [ "$user_name" = "" ]; then
-"${g}Error, missing arguments:${y} -u | User name | <string>
-${w}$USAGE"
-exit 1
+if [ -z "$user_name" ]; then
+    echo -e "${r}Error: missing argument ${y}-u <username>${w}"
+    echo -e "$USAGE"
+    exit 1
 fi
-threads=`nproc`
 
-#SUBREAD
-subread_tar=/home/$user_name/subread-2.0.6-Linux-x86_64.tar.gz
-subread_path=/home/$user_name/subread-2.0.6-Linux-x86_64
-subread_path_bin=subread-2.0.6-Linux-x86_64
-subread_url=https://gox.dl.sourceforge.net/project/subread/subread-2.0.6/subread-2.0.6-Linux-x86_64.tar.gz
-su -c "cd ~/ && wget $subread_url" $user_name
-su -c "cd ~/ && tar zxf $subread_tar" $user_name
-cp -R $subread_path -t /usr/bin/
-ln -fs /usr/bin/$subread_path_bin/bin/exactSNP /usr/bin/exactSNP
-ln -fs /usr/bin/$subread_path_bin/bin/featureCounts /usr/bin/featureCounts
-ln -fs /usr/bin/$subread_path_bin/bin/subindel /usr/bin/subindel
-ln -fs /usr/bin/$subread_path_bin/bin/subjunc /usr/bin/subjunc
-ln -fs /usr/bin/$subread_path_bin/bin/sublong /usr/bin/sublong
-ln -fs /usr/bin/$subread_path_bin/bin/subread-align /usr/bin/subread-align
-ln -fs /usr/bin/$subread_path_bin/bin/subread-buildindex /usr/bin/subread-buildindex
-rm -rf $subread_tar $subread_path
+download_with_retry() {
+    local url="$1"; local output="$2"; local label="$3"
+    local max_attempts=5; local attempt=1
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Downloading $label (attempt $attempt of $max_attempts)..."
+        su -c "cd ~/ && wget -O '$output' '$url'" "$user_name"
+        if [ $? -eq 0 ] && [ -s "$output" ]; then return 0; fi
+        rm -f "$output"
+        attempt=$((attempt + 1))
+    done
+    echo "${r}ERROR: Failed to download $label after $max_attempts attempts. Installation aborted.${w}"
+    exit 1
+}
+
+subread_tar="/home/$user_name/subread-2.1.1-Linux-x86_64.tar.gz"
+subread_path="/home/$user_name/subread-2.1.1-Linux-x86_64"
+subread_path_bin="subread-2.1.1-Linux-x86_64"
+subread_url="https://sitsa.dl.sourceforge.net/project/subread/subread-2.1.1/subread-2.1.1-Linux-x86_64.tar.gz"
+
+download_with_retry "$subread_url" "$subread_tar" "Subread"
+
+su -c "cd ~/ && tar -zxf '$subread_tar'" "$user_name" || exit 1
+sudo cp -R "$subread_path" /usr/bin/ || exit 1
+
+sudo ln -fs /usr/bin/$subread_path_bin/bin/exactSNP /usr/bin/exactSNP
+sudo ln -fs /usr/bin/$subread_path_bin/bin/featureCounts /usr/bin/featureCounts
+sudo ln -fs /usr/bin/$subread_path_bin/bin/subindel /usr/bin/subindel
+sudo ln -fs /usr/bin/$subread_path_bin/bin/subjunc /usr/bin/subjunc
+sudo ln -fs /usr/bin/$subread_path_bin/bin/sublong /usr/bin/sublong
+sudo ln -fs /usr/bin/$subread_path_bin/bin/subread-align /usr/bin/subread-align
+sudo ln -fs /usr/bin/$subread_path_bin/bin/subread-buildindex /usr/bin/subread-buildindex
+
+rm -rf "$subread_tar" "$subread_path"
 
 echo "${g}"
-echo    "----------------------------"
-echo	"Currently installed version:"
-echo    "----------------------------${w}"
+echo "----------------------------"
+echo "Currently installed version:"
+echo "----------------------------${w}"
 subread-align -v
-echo    "${g}----------------------------"
+echo "${g}----------------------------${w}"

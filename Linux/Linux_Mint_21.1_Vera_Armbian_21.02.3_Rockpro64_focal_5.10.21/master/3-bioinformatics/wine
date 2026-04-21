@@ -1,26 +1,95 @@
 #!/bin/bash
-#Este script é executado atraves de um script primario
-w=$(tput sgr0) 
+# This script is executed through a primary script
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
-USAGE="USAGE: $0 "
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+
+USAGE="USAGE: $0"
+
+download_with_retry() {
+    local url="$1"
+    local output="$2"
+    local label="$3"
+    local max_attempts=5
+    local attempt=1
+
+    echo "${y}Downloading $label...${w}"
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Attempt $attempt of $max_attempts..."
+
+        wget -O "$output" "$url"
+        wget_exit=$?
+
+        if [ "$wget_exit" -eq 0 ] && [ -s "$output" ]; then
+            echo "${g}Download completed successfully.${w}"
+            return 0
+        else
+            echo "${r}Download failed on attempt $attempt.${w}"
+            rm -f "$output"
+        fi
+
+        attempt=$((attempt + 1))
+    done
+
+    echo "${r}ERROR: Failed to download $label after $max_attempts attempts. Installation aborted.${w}"
+    exit 1
+}
+
 echo "${y}*******************"
-echo 'wine'
+echo "wine"
 echo "*******************${w}"
-echo	""
-UBUNTU_CODENAME=`cat /etc/os-release | grep -i codename | grep UBUNTU | awk -F "=" '{print $2}'`
-cd ~/
-wget -nc https://dl.winehq.org/wine-builds/winehq.key
-sudo apt-key add winehq.key
-sudo apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $UBUNTU_CODENAME main"
-sudo apt-get update
-sudo apt-get install -y --install-recommends winehq-stable
-rm winehq.key
+echo ""
+
+UBUNTU_CODENAME=$(grep -i '^UBUNTU_CODENAME=' /etc/os-release | awk -F= '{print $2}')
+
+if [ -z "$UBUNTU_CODENAME" ]; then
+    echo "${r}ERROR: Could not determine the Ubuntu codename from /etc/os-release.${w}"
+    exit 1
+fi
+
+cd ~/ || {
+    echo "${r}ERROR: Failed to change to the home directory.${w}"
+    exit 1
+}
+
+sudo mkdir -p /etc/apt/keyrings || {
+    echo "${r}ERROR: Failed to create /etc/apt/keyrings.${w}"
+    exit 1
+}
+
+WINE_KEY="/tmp/winehq.key"
+download_with_retry "https://dl.winehq.org/wine-builds/winehq.key" "$WINE_KEY" "WineHQ signing key"
+
+sudo gpg --dearmor -o /etc/apt/keyrings/winehq-archive.key "$WINE_KEY" || {
+    echo "${r}ERROR: Failed to install the WineHQ signing key.${w}"
+    rm -f "$WINE_KEY"
+    exit 1
+}
+
+rm -f "$WINE_KEY"
+
+echo "deb [signed-by=/etc/apt/keyrings/winehq-archive.key] https://dl.winehq.org/wine-builds/ubuntu/ $UBUNTU_CODENAME main" | \
+sudo tee /etc/apt/sources.list.d/winehq.list > /dev/null || {
+    echo "${r}ERROR: Failed to configure the WineHQ repository.${w}"
+    exit 1
+}
+
+sudo apt-get update || {
+    echo "${r}ERROR: Failed to update package lists.${w}"
+    exit 1
+}
+
+sudo apt-get install -y --install-recommends winehq-stable || {
+    echo "${r}ERROR: Failed to install Wine.${w}"
+    exit 1
+}
 
 echo "${g}"
-echo    "----------------------------"
-echo	"Currently installed version:"
-echo    "----------------------------${w}"
+echo "----------------------------"
+echo "Currently installed version:"
+echo "----------------------------${w}"
 wine --version
-echo    "${g}----------------------------"
+echo "${g}----------------------------${w}"

@@ -13,8 +13,7 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-while getopts u: option
-do
+while getopts "u:" option; do
     case "${option}" in
         u) user_name=$OPTARG ;;
     esac
@@ -32,8 +31,14 @@ threads=$(nproc)
 echo "${y}*****************************"
 echo "Installing required libraries"
 echo "*****************************${w}"
-sudo apt-fast install -y build-essential fort77 liblzma-dev libblas-dev gfortran gcc-multilib gobjc++ aptitude libcurl4-openssl-dev libbz2-dev libproj-dev xorg-dev
-sudo aptitude install -y libreadline-dev
+sudo apt-fast install -y build-essential fort77 liblzma-dev libblas-dev gfortran gcc-multilib gobjc++ aptitude libcurl4-openssl-dev libbz2-dev libproj-dev xorg-dev || {
+    echo "${r}ERROR: Failed to install required packages with apt-fast.${w}"
+    exit 1
+}
+sudo aptitude install -y libreadline-dev || {
+    echo "${r}ERROR: Failed to install libreadline-dev with aptitude.${w}"
+    exit 1
+}
 
 # R installation/update
 echo "${y}*******************"
@@ -42,74 +47,84 @@ echo "*******************${w}"
 
 R_path_glob="/home/$user_name/R-*.*.*"
 R_tar="R-latest.tar.gz"
+R_tar_path="/home/$user_name/$R_tar"
 R_url="https://cran.r-project.org/src/base/R-latest.tar.gz"
 
-max_tries=10
-try=1
+max_attempts=10
+attempt=1
+download_success=0
 
-rm -rf $R_path_glob "/home/$user_name/$R_tar"
+rm -rf $R_path_glob "$R_tar_path"
 
-# Retry download loop
-while [ $try -le $max_tries ]; do
-    echo "${y}Attempt $try of $max_tries to download R...${w}"
+echo "${y}Downloading R source package...${w}"
 
-    if su -c "cd ~/ && rm -f '$R_tar' && wget --tries=3 --timeout=30 --waitretry=5 -O '$R_tar' '$R_url'" "$user_name"; then
+while [ "$attempt" -le "$max_attempts" ]; do
+    echo "Attempt $attempt of $max_attempts..."
+
+    su -c "cd ~/ && wget -O '$R_tar' '$R_url'" "$user_name"
+    wget_exit=$?
+
+    if [ "$wget_exit" -eq 0 ] && [ -s "$R_tar_path" ]; then
         echo "${g}Download completed successfully.${w}"
+        download_success=1
         break
+    else
+        echo "${r}Download failed on attempt $attempt.${w}"
+        rm -f "$R_tar_path"
     fi
 
-    echo "${r}Download failed.${w}"
-
-    if [ $try -eq $max_tries ]; then
-        echo "${r}Error: failed to download $R_url after $max_tries attempts.${w}"
-        exit 1
-    fi
-
-    try=$((try + 1))
-    sleep 5
+    attempt=$((attempt + 1))
 done
 
-# Extract
-if ! su -c "cd ~/ && tar -zxf '$R_tar'" "$user_name"; then
-    echo "${r}Error extracting $R_tar.${w}"
+if [ "$download_success" -ne 1 ]; then
+    echo "${r}ERROR: Failed to download R after $max_attempts attempts. Installation aborted.${w}"
     exit 1
 fi
 
-rm -rf /home/$user_name/R-*.tar.gz
+# Extract
+su -c "cd ~/ && tar -zxf '$R_tar'" "$user_name" || {
+    echo "${r}ERROR: Failed to extract the R source archive.${w}"
+    exit 1
+}
+
+rm -rf /home/"$user_name"/R-*.tar.gz
 
 # Find extracted directory
 R_path=$(find /home/"$user_name" -maxdepth 1 -type d -name "R-*" | head -n 1)
 
 if [ -z "$R_path" ]; then
-    echo "${r}Error: could not locate extracted R directory.${w}"
+    echo "${r}ERROR: Could not locate the extracted R source directory.${w}"
     exit 1
 fi
 
 # Configure
-if ! su -c "cd '$R_path' && ./configure --with-cairo --enable-R-shlib" "$user_name"; then
-    echo "${r}Error during R configure step.${w}"
+su -c "cd '$R_path' && ./configure --with-cairo --enable-R-shlib" "$user_name" || {
+    echo "${r}ERROR: R configuration step failed.${w}"
     exit 1
-fi
+}
 
 # Compile
-if ! su -c "cd '$R_path' && make -j $threads" "$user_name"; then
-    echo "${r}Error during R compilation.${w}"
+su -c "cd '$R_path' && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: R compilation step failed.${w}"
     exit 1
-fi
+}
 
-# Install (ignore uninstall failure if any)
+# Install
 cd "$R_path" && sudo make uninstall -j "$threads" || true
-cd "$R_path" && sudo make install -j "$threads"
+cd "$R_path" && sudo make install -j "$threads" || {
+    echo "${r}ERROR: R installation step failed.${w}"
+    exit 1
+}
 
 # Fix ownership and cleanup
 chown -R "$user_name:$user_name" "/home/$user_name"
-rm -rf "$R_path" "/home/$user_name/$R_tar"
+rm -rf "$R_path" "$R_tar_path"
 cd
 
 # Show installed version
 echo "${g}"
 echo "----------------------------"
 echo "Currently installed version:"
-echo "---------------------------${w}"
+echo "----------------------------${w}"
 R --version | grep version | grep R
-echo "${g}------------------------${w}"
+echo "${g}----------------------------${w}"

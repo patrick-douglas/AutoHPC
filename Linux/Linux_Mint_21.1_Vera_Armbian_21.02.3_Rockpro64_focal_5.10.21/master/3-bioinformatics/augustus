@@ -1,65 +1,141 @@
 #!/bin/bash
-#Este script é executado atraves de um script primario
-w=$(tput sgr0) 
+# This script is executed through a primary script
+
+w=$(tput sgr0)
 r=$(tput setaf 1)
-g=$(tput setaf 2) 
-y=$(tput setaf 3) 
+g=$(tput setaf 2)
+y=$(tput setaf 3)
+
 USAGE="USAGE: $0 -u <username>"
-if [ "$#" -lt "1" ] 
-then 
-    echo -e $USAGE;
-exit 1    
-else 
-    var1=$2;
+
+if [ "$#" -lt 1 ]; then
+    echo -e "$USAGE"
+    exit 1
 fi
 
-while getopts u: option
-do
-case "${option}"
-in
-u) user_name=$OPTARG;;
-esac
+while getopts "u:" option; do
+    case "${option}" in
+        u) user_name=$OPTARG ;;
+    esac
 done
 
-if [ "$user_name" = "" ]; then
-"${g}Error, missing arguments:${y} -u | User name | <string>
-${w}$USAGE"
-exit 1
+if [ -z "$user_name" ]; then
+    echo -e "${r}Error: missing argument ${y}-u <username>${w}"
+    echo -e "$USAGE"
+    exit 1
 fi
-threads=`nproc`
 
-#AUGUSTUS
+threads=$(nproc)
+
+download_with_retry() {
+    local url="$1"
+    local output="$2"
+    local label="$3"
+    local max_attempts=5
+    local attempt=1
+
+    echo "${y}Downloading $label source package...${w}"
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Attempt $attempt of $max_attempts..."
+        su -c "cd ~/ && wget -O '$output' '$url'" "$user_name"
+        if [ $? -eq 0 ] && [ -s "$output" ]; then
+            echo "${g}Download completed successfully.${w}"
+            return 0
+        fi
+        rm -f "$output"
+        attempt=$((attempt + 1))
+    done
+
+    echo "${r}ERROR: Failed to download $label after $max_attempts attempts. Installation aborted.${w}"
+    exit 1
+}
+
+git_clone_with_retry() {
+    local repo_url="$1"
+    local dest_dir="$2"
+    local label="$3"
+    local max_attempts=5
+    local attempt=1
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        echo "Cloning $label (attempt $attempt of $max_attempts)..."
+        su -c "rm -rf '$dest_dir' && git clone '$repo_url' '$dest_dir'" "$user_name" && return 0
+        attempt=$((attempt + 1))
+    done
+
+    echo "${r}ERROR: Failed to clone $label after $max_attempts attempts. Installation aborted.${w}"
+    exit 1
+}
+
 echo "${y}*******************"
-echo 'Augustus'
+echo "Augustus"
 echo "*******************${w}"
-sudo apt-fast install -y zlib1g-dev libgsl-dev libboost-graph-dev libsuitesparse-dev liblpsolve55-dev libsqlite3-dev libgsl-dev libboost-graph-dev libsuitesparse-dev liblpsolve55-dev  libbamtools-dev libboost-all-dev #libmysql++-dev
 
-Augustus_tar=/home/$user_name/3.3.2.tar.gz
-Augustus_path=/home/$user_name/Augustus-3.3.2
-rm -rf $Augustus_path
-su -c "cd ~/ && wget https://github.com/Gaius-Augustus/Augustus/archive/3.3.2.tar.gz" $user_name
-su -c "cd ~/ && tar zxf $Augustus_tar" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/ && git clone https://github.com/samtools/htslib.git" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/htslib && autoheader && autoconf && ./configure && make -j $threads" $user_name
-cd $Augustus_path/auxprogs/bam2wig/htslib && sudo make -j $threads install
-su -c "cd $Augustus_path/auxprogs/bam2wig/ && git clone https://github.com/samtools/bcftools.git" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/bcftools/ && autoheader && autoconf && ./configure && make -j $threads" $user_name
-cd $Augustus_path/auxprogs/bam2wig/bcftools/ && sudo make -j $threads install
-su -c "cd $Augustus_path/auxprogs/bam2wig/ && git clone https://github.com/samtools/tabix.git" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/tabix && make -j $threads" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/ && git clone https://github.com/samtools/samtools.git" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/samtools && autoheader && autoconf -Wno-syntax && ./configure && make -j $threads" $user_name
-cd $Augustus_path/auxprogs/bam2wig/samtools/ && sudo make -j $threads install
-su -c "mkdir -p $Augustus_path/bin" $user_name
-su -c "cd $Augustus_path/auxprogs/bam2wig/ && export TOOLDIR=/home/$user_name/Augustus-3.3.2/auxprogs/bam2wig/ && cd $Augustus_path/auxprogs/bam2wig/ && make -j $threads" $user_name
-su -c "cd $Augustus_path && make -j $threads" $user_name
-cd $Augustus_path && sudo make install 
-rm -rf $Augustus_tar
+sudo apt-fast install -y zlib1g-dev libgsl-dev libboost-graph-dev libsuitesparse-dev liblpsolve55-dev libsqlite3-dev libbamtools-dev libboost-all-dev || {
+    echo "${r}ERROR: Failed to install Augustus dependencies.${w}"
+    exit 1
+}
+
+Augustus_tar="/home/$user_name/3.3.2.tar.gz"
+Augustus_path="/home/$user_name/Augustus-3.3.2"
+
+rm -rf "$Augustus_path"
+download_with_retry "https://github.com/Gaius-Augustus/Augustus/archive/3.3.2.tar.gz" "$Augustus_tar" "Augustus"
+
+su -c "cd ~/ && tar -zxf '$Augustus_tar'" "$user_name" || {
+    echo "${r}ERROR: Failed to extract the Augustus source archive.${w}"
+    exit 1
+}
+
+git_clone_with_retry "https://github.com/samtools/htslib.git" "$Augustus_path/auxprogs/bam2wig/htslib" "HTSLIB"
+git_clone_with_retry "https://github.com/samtools/bcftools.git" "$Augustus_path/auxprogs/bam2wig/bcftools" "BCFtools"
+git_clone_with_retry "https://github.com/samtools/tabix.git" "$Augustus_path/auxprogs/bam2wig/tabix" "tabix"
+git_clone_with_retry "https://github.com/samtools/samtools.git" "$Augustus_path/auxprogs/bam2wig/samtools" "Samtools"
+
+su -c "cd '$Augustus_path/auxprogs/bam2wig/htslib' && autoheader && autoconf && ./configure && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: HTSLIB build step failed.${w}"
+    exit 1
+}
+cd "$Augustus_path/auxprogs/bam2wig/htslib" && sudo make install -j "$threads" || exit 1
+
+su -c "cd '$Augustus_path/auxprogs/bam2wig/bcftools' && autoheader && autoconf && ./configure && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: BCFtools build step failed.${w}"
+    exit 1
+}
+cd "$Augustus_path/auxprogs/bam2wig/bcftools" && sudo make install -j "$threads" || exit 1
+
+su -c "cd '$Augustus_path/auxprogs/bam2wig/tabix' && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: tabix build step failed.${w}"
+    exit 1
+}
+
+su -c "cd '$Augustus_path/auxprogs/bam2wig/samtools' && autoheader && autoconf -Wno-syntax && ./configure && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: Samtools build step failed.${w}"
+    exit 1
+}
+cd "$Augustus_path/auxprogs/bam2wig/samtools" && sudo make install -j "$threads" || exit 1
+
+su -c "mkdir -p '$Augustus_path/bin'" "$user_name"
+su -c "export TOOLDIR='$Augustus_path/auxprogs/bam2wig' && cd '$Augustus_path/auxprogs/bam2wig' && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: bam2wig build step failed.${w}"
+    exit 1
+}
+
+su -c "cd '$Augustus_path' && make -j '$threads'" "$user_name" || {
+    echo "${r}ERROR: Augustus compilation step failed.${w}"
+    exit 1
+}
+
+cd "$Augustus_path" && sudo make install || {
+    echo "${r}ERROR: Augustus installation step failed.${w}"
+    exit 1
+}
+
+rm -rf "$Augustus_tar"
 
 echo "${g}"
-echo    "----------------------------"
-echo	"Currently installed version:"
-echo    "----------------------------${w}"
+echo "----------------------------"
+echo "Currently installed version:"
+echo "----------------------------${w}"
 augustus --version
-echo    "${g}----------------------------"
-
+echo "${g}----------------------------${w}"

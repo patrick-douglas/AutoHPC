@@ -67,7 +67,7 @@ sudo aptitude install libreadline-dev -y
 sudo apt-fast install python-setuptools -y
 sudo apt-fast install python3-setuptools -y
 sudo apt-fast install python3-testresources -y
-
+sudo apt-fast install -y autoconf automake libtool pkg-config 
 
 ./java
 ./pcre -u $user_name
