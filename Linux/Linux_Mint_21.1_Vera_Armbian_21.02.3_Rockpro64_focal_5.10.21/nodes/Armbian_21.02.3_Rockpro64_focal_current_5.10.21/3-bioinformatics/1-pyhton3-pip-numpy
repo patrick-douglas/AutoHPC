@@ -61,8 +61,8 @@ python3_deb_URL=https://master.dl.sourceforge.net/project/rock64-dependencies/Py
 python3_deb=python_3.10.2-1_arm64.deb
 ssh $node_name "cd /node_temp && wget $python3_deb_URL"
 ssh $node_name "dpkg -i --force-all /node_temp/$python3_deb"
-
-ssh $node_name 'apt-fast install --yes python-pip python3-pip -y'
+ssh $node_name "apt --fix-broken install -y"
+ssh $node_name 'apt-fast install --yes python3-pip -y'
 ssh $node_name "apt-fast -y install python-setuptools python-dev build-essential"
 
 ssh $node_name "su -c 'pip install numpy' $user_name"
@@ -70,8 +70,8 @@ ssh $node_name "su -c 'pip install gffutils' $user_name"
 ssh $node_name "su -c 'pip install gffutils' $user_name"
 ssh $node_name "pip install --upgrade pip"
 # pip3 
-ssh $node_name "python3 -m pip install --upgrade pip"
-ssh $node_name "python3 -m pip install gffutils"
-ssh $node_name "python3 -m pip install numpy"
+ssh $node_name "su -c 'python3 -m pip install --upgrade pip' $user_name"
+ssh $node_name "su -c 'python3 -m pip install gffutils' $user_name"
+ssh $node_name "su -c 'python3 -m pip install numpy' $user_name"
 ssh $node_name "rm -rf /node_temp/"
 
