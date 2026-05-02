@@ -6,10 +6,10 @@
 trimmomatic_bin=/home/me/Trimmomatic-0.39/trimmomatic-0.39.jar
 PHRED="-phred33"
 MINLEN=26 #Drop the read if it is below a specified length.
-CROP=210 #Cut the read to a specified length.
+CROP=250 #Cut the read to a specified length.
 LEADING=5 #Cut bases off the start of a read, if below a threshold quality
 TRAILING=5 #Cut bases off the end of a read, if below a threshold quality.
-HEADCROP=20 #Cut the specified number of bases from the start of the read.
+HEADCROP=15 #Cut the specified number of bases from the start of the read.
 AVGQUAL=5 #Specifies the minimum Phred quality score of a read to be kept.
 SLIDINGWINDOW=4:5 #Scan the read with a 4-base wide sliding window, cutting when the average quality per base drops below 5 (SLIDINGWINDOW:4:5)
 THREADS=$(nproc)

@@ -45,7 +45,7 @@ AUTO_DETECT=1
 FORCE=0
 
 # Manual fallback (only used if --no-auto)
-PCTS=(10 20 30 40 50 60 70 80 90 100)
+PCTS=(80 90 100)
 
 # ===== ARG PARSER =====
 while [[ $# -gt 0 ]]; do

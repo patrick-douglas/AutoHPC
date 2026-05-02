@@ -1,0 +1,261 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NODE=""
+USER_NAME=""
+SUDO_PASS=""
+SUBNET="11.0.0.1/24"
+MASTER_FQDN="master.lbn.com"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --node) NODE="$2"; shift 2 ;;
+    --user) USER_NAME="$2"; shift 2 ;;
+    --sudopass) SUDO_PASS="$2"; shift 2 ;;
+    --subnet) SUBNET="$2"; shift 2 ;;
+    --master-fqdn) MASTER_FQDN="$2"; shift 2 ;;
+    *) echo "Unknown option: $1"; exit 1 ;;
+  esac
+done
+
+[[ -z "$NODE" ]] && { echo "Missing --node"; exit 1; }
+[[ -z "$USER_NAME" ]] && { echo "Missing --user"; exit 1; }
+[[ -z "$SUDO_PASS" ]] && { echo "Missing --sudopass"; exit 1; }
+
+command -v expect >/dev/null || { echo "Install expect: sudo apt install expect"; exit 1; }
+command -v nmap >/dev/null || { echo "Install nmap: sudo apt install nmap"; exit 1; }
+
+[[ ! -d "/home/$USER_NAME/.ssh" ]] && {
+  echo "ERROR: /home/$USER_NAME/.ssh does not exist on master."
+  exit 1
+}
+
+TMP_EXPECT="$(mktemp /tmp/reauth_${NODE}.XXXX.exp)"
+REMOTE_SCRIPT="/tmp/reauthorize_remote_${USER_NAME}.sh"
+TMP_REMOTE="/tmp/${USER_NAME}_ssh_reauth"
+
+trap 'rm -f "$TMP_EXPECT"' EXIT
+
+echo "------------------------------------------------------------"
+echo "Re-authorizing SSH for node: $NODE"
+echo "User: $USER_NAME"
+echo "Subnet: $SUBNET"
+echo "Master FQDN: $MASTER_FQDN"
+echo "------------------------------------------------------------"
+
+echo "[0] Cleaning known_hosts..."
+
+ssh-keygen -R "$NODE" >/dev/null 2>&1 || true
+
+NODE_IP="$(nmap -sn "$SUBNET" | awk -v n="$NODE" '
+/Nmap scan report/ && $0 ~ n {
+  if ($NF ~ /^\(/) {
+    gsub(/[()]/,"",$NF)
+    print $NF
+    exit
+  } else {
+    print $NF
+    exit
+  }
+}')"
+
+if [[ -n "${NODE_IP:-}" ]]; then
+  echo "Found IP for $NODE: $NODE_IP"
+  ssh-keygen -R "$NODE_IP" >/dev/null 2>&1 || true
+else
+  echo "Warning: IP not found by nmap."
+fi
+
+echo "[1] Creating remote script..."
+
+cat > /tmp/reauthorize_remote_local.sh <<'REMOTE_EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+USER_NAME="$1"
+TMP_REMOTE="$2"
+MASTER_FQDN="$3"
+
+cd /
+
+echo "REMOTE_CURRENT_MOUNTS_BEFORE_UMOUNT"
+findmnt -T /home || true
+findmnt -T /root || true
+findmnt -T /export || true
+
+is_nfs_or_master() {
+  local p="$1"
+  findmnt -T "$p" 2>/dev/null | grep -E "nfs|${MASTER_FQDN}" >/dev/null 2>&1
+}
+
+try_umount() {
+  local p="$1"
+
+  if is_nfs_or_master "$p"; then
+    echo "UNMOUNTING:$p"
+
+    umount "$p" 2>/dev/null || \
+    umount -f "$p" 2>/dev/null || \
+    umount -l "$p" 2>/dev/null || {
+      echo "UMOUNT_FAILED:$p"
+      findmnt -T "$p" || true
+      exit 80
+    }
+
+    sleep 1
+
+    if is_nfs_or_master "$p"; then
+      echo "STILL_MOUNTED_AFTER_UMOUNT:$p"
+      findmnt -T "$p" || true
+      exit 81
+    else
+      echo "UMOUNT_OK:$p"
+    fi
+  else
+    echo "NOT_NFS_OR_NOT_MOUNTED:$p"
+  fi
+}
+
+try_umount /export
+try_umount /home
+try_umount /root
+
+echo "REMOTE_VERIFYING_AFTER_UMOUNT"
+
+for p in /home /root /export; do
+  if is_nfs_or_master "$p"; then
+    echo "STILL_MOUNTED:$p"
+    findmnt -T "$p" || true
+    exit 82
+  else
+    echo "OK_UNMOUNTED_OR_LOCAL:$p"
+  fi
+done
+
+echo "REMOTE_INSTALLING_SSH_KEYS_LOCALLY"
+
+mkdir -p "/home/$USER_NAME" /root
+
+if is_nfs_or_master /home; then
+  echo "ERROR_HOME_REMOUNTED_BEFORE_SSH_INSTALL"
+  exit 83
+fi
+
+if is_nfs_or_master /root; then
+  echo "ERROR_ROOT_REMOUNTED_BEFORE_SSH_INSTALL"
+  exit 84
+fi
+
+rm -rf "/home/$USER_NAME/.ssh" /root/.ssh
+
+mv "$TMP_REMOTE/.ssh" "/home/$USER_NAME/.ssh"
+cp -a "/home/$USER_NAME/.ssh" /root/.ssh
+
+chown -R "$USER_NAME:$USER_NAME" "/home/$USER_NAME/.ssh"
+chown -R root:root /root/.ssh
+
+chmod 700 "/home/$USER_NAME/.ssh" /root/.ssh
+find "/home/$USER_NAME/.ssh" -type f -exec chmod 600 {} \;
+find /root/.ssh -type f -exec chmod 600 {} \;
+
+rm -rf "$TMP_REMOTE"
+
+echo "REMOTE_REMOUNTING_WITH_MOUNT_A"
+mount -a || {
+  echo "MOUNT_A_FAILED"
+  exit 85
+}
+
+echo "REMOTE_MOUNT_STATUS_AFTER_MOUNT_A"
+findmnt -T /home || true
+findmnt -T /root || true
+findmnt -T /export || true
+
+echo "REMOTE_DONE"
+REMOTE_EOF
+
+chmod +x /tmp/reauthorize_remote_local.sh
+
+echo "[2] Copying master's .ssh and remote script to node..."
+
+cat > "$TMP_EXPECT" <<EOF
+#!/usr/bin/expect -f
+set timeout -1
+
+proc auth {} {
+    expect {
+        -re {(?i)are you sure.*} {
+            send "yes\r"
+            exp_continue
+        }
+        -re {(?i)password.*:} {
+            send "$SUDO_PASS\r"
+            exp_continue
+        }
+        eof
+    }
+}
+
+spawn ssh -o StrictHostKeyChecking=no $USER_NAME@$NODE "rm -rf $TMP_REMOTE && mkdir -p $TMP_REMOTE"
+auth
+
+spawn scp -o StrictHostKeyChecking=no -r /home/$USER_NAME/.ssh $USER_NAME@$NODE:$TMP_REMOTE/.ssh
+auth
+
+spawn scp -o StrictHostKeyChecking=no /tmp/reauthorize_remote_local.sh $USER_NAME@$NODE:$REMOTE_SCRIPT
+auth
+EOF
+
+chmod +x "$TMP_EXPECT"
+"$TMP_EXPECT"
+
+echo "[3] Running remote script as root..."
+
+cat > "$TMP_EXPECT" <<EOF
+#!/usr/bin/expect -f
+set timeout -1
+
+spawn ssh -tt -o StrictHostKeyChecking=no $USER_NAME@$NODE "cd / && echo '$SUDO_PASS' | sudo -S bash $REMOTE_SCRIPT '$USER_NAME' '$TMP_REMOTE' '$MASTER_FQDN'; STATUS=\\\$?; rm -f $REMOTE_SCRIPT; exit \\\$STATUS"
+
+expect {
+    -re {(?i)are you sure.*} {
+        send "yes\r"
+        exp_continue
+    }
+    -re {(?i)password.*:} {
+        send "$SUDO_PASS\r"
+        exp_continue
+    }
+    eof
+}
+EOF
+
+chmod +x "$TMP_EXPECT"
+
+if ! "$TMP_EXPECT"; then
+  echo ""
+  echo "ERROR: remote reauthorization failed."
+  echo "The script stopped before completing safely."
+  exit 1
+fi
+
+rm -f /tmp/reauthorize_remote_local.sh
+
+echo "[4] Updating master's root .ssh from /home/$USER_NAME/.ssh..."
+
+echo "$SUDO_PASS" | sudo -S rm -rf /root/.ssh
+echo "$SUDO_PASS" | sudo -S cp -a "/home/$USER_NAME/.ssh" /root/.ssh
+echo "$SUDO_PASS" | sudo -S chown -R root:root /root/.ssh
+echo "$SUDO_PASS" | sudo -S chmod 700 /root/.ssh
+echo "$SUDO_PASS" | sudo -S find /root/.ssh -type f -exec chmod 600 {} \;
+echo "$SUDO_PASS" | sudo -S find /root/.ssh -name "*.pub" -exec chmod 644 {} \;
+echo "------------------------------------------------------------"
+echo "DONE."
+echo "Test:"
+echo "  ssh $NODE"
+echo "  ssh root@$NODE"
+echo "------------------------------------------------------------"
+
+echo "[FINAL] Rebooting node..."
+
+ssh -o StrictHostKeyChecking=no root@$NODE "reboot" || true
