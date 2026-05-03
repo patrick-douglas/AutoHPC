@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script is executed through a primary script.
-
+conda deactivate
 w=$(tput sgr0)
 r=$(tput setaf 1)
 g=$(tput setaf 2)
@@ -93,6 +93,7 @@ su -c 'pip3 install -U setuptools' "$user_name"
 su -c 'pip3 install numpy' "$user_name"
 su -c 'pip3 install --upgrade pip' "$user_name"
 su -c 'pip3 install biopython' "$user_name"
+sudo apt install -y python3-numpy
 
 rm -rf "$python_path" "$python_tar"
 
