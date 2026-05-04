@@ -55,7 +55,7 @@ SEQS_PER_BIN="20"
 
 AUTO_DETECT=1
 FORCE=0
-PCTS=(10)
+PCTS=(80 90 100)
 
 # ===== Argument parser =====
 while [[ $# -gt 0 ]]; do

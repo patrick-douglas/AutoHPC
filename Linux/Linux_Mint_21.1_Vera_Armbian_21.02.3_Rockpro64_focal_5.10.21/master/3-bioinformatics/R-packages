@@ -154,6 +154,8 @@ cran_pkgs <- c(
   "dplyr",
   "ggrepel",
   "devtools",
+  "remotes",
+  "optparse",
   "argparse",
   "fastcluster",
   "ape",
