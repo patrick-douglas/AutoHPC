@@ -184,6 +184,7 @@ bioc_pkgs <- c(
   "qvalue",
   "seqLogo",
   "EnhancedVolcano"
+  "GenomeInfoDb"
 )
 
 for (p in bioc_pkgs) {
