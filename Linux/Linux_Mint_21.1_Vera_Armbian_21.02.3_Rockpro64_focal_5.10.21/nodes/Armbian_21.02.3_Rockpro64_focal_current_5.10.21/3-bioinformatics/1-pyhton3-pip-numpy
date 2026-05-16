@@ -63,7 +63,7 @@ ssh $node_name "cd /node_temp && wget $python3_deb_URL"
 ssh $node_name "dpkg -i --force-all /node_temp/$python3_deb"
 ssh $node_name "apt --fix-broken install -y"
 ssh $node_name 'apt-fast install --yes python3-pip -y'
-ssh $node_name "apt-fast -y install python-setuptools python-dev build-essential"
+ssh $node_name "apt-fast -y install python-setuptools build-essential"
 
 ssh $node_name "su -c 'pip install numpy' $user_name"
 ssh $node_name "su -c 'pip install gffutils' $user_name"

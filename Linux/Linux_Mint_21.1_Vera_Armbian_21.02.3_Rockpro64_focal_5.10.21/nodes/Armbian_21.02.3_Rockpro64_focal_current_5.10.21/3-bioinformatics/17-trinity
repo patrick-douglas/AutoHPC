@@ -38,11 +38,11 @@ ssh $node_name "mkdir -p /node_temp/"
 echo "${y}*******************"
 echo 'Trinity'
 echo "*******************${w}"
-trinity_deb_url=https://master.dl.sourceforge.net/project/rock64-dependencies/Trinity-RNA-Seq/trinityrnaseq_2.11.0-1_arm64.deb
-trinity_deb=trinityrnaseq_2.11.0-1_arm64.deb
+trinity_deb_url=https://master.dl.sourceforge.net/project/rock64-dependencies/Trinity-RNA-Seq/trinityrnaseq_2.15.2-2_arm64.deb
+trinity_deb=trinityrnaseq_2.15.2-2_arm64.deb
 ssh $node_name "cd /node_temp && wget --show-progress $trinity_deb_url"
 ssh $node_name "rm -rf /usr/local/bin/trinityrnaseq*"
 ssh $node_name "dpkg -i /node_temp/$trinity_deb"
-ssh $node_name "mv /usr/local/bin/trinityrnaseq-* /usr/local/bin/trinityrnaseq-latest"
-ssh $node_name "cp -f /usr/bin/ParaFly /usr/local/bin/trinityrnaseq-latest/trinity-plugins/BIN/ParaFly"
+#ssh $node_name "mv /usr/local/bin/trinityrnaseq-* /usr/local/bin/trinityrnaseq-latest"
+#ssh $node_name "cp -f /usr/bin/ParaFly /usr/local/bin/trinityrnaseq-latest/trinity-plugins/BIN/ParaFly"
 ssh $node_name "rm -rf /node_temp/"

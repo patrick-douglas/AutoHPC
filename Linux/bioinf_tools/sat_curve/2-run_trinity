@@ -42,10 +42,10 @@ MAX_MEM="100G"
 GRIDRUNNER="/home/me/HpcGridRunner/grid_exec_wrap.sh"
 GRIDCONF="/home/me/HpcGridRunner/hpc_conf/SLURM.Trinity.conf"
 AUTO_DETECT=1
-FORCE=0
+FORCE=1
 
 # Manual fallback (only used if --no-auto)
-PCTS=(80 90 100)
+PCTS=(20 30 40 50 60 70 80 90 100)
 
 # ===== ARG PARSER =====
 while [[ $# -gt 0 ]]; do
